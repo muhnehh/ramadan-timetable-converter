@@ -586,8 +586,8 @@ function renderOriginalTable() {
         tr.innerHTML = `
             <td>${esc(cls.day)}</td>
             <td>${esc(cls.course)}</td>
-            <td>${esc(cls.start_time)}</td>
-            <td>${esc(cls.end_time)}</td>
+            <td>${esc(cls.start_time)} <small style="color:var(--text2)">(${to12h(cls.start_time)})</small></td>
+            <td>${esc(cls.end_time)} <small style="color:var(--text2)">(${to12h(cls.end_time)})</small></td>
             <td>${cls.duration_minutes || '?'} min</td>
             <td><span class="confidence-badge confidence-${confClass}">${Math.round(conf*100)}%</span></td>
         `;
@@ -606,9 +606,9 @@ function renderRamadanTable() {
         tr.innerHTML = `
             <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="day">${esc(cls.day)}</span></td>
             <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="course">${esc(cls.course)}</span></td>
-            <td>${esc(cls.original_start)} - ${esc(cls.original_end)}</td>
-            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_start">${esc(cls.ramadan_start)}</span></td>
-            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_end">${esc(cls.ramadan_end)}</span></td>
+            <td>${esc(cls.original_start)} - ${esc(cls.original_end)}<br><small style="color:var(--text2)">${to12h(cls.original_start)} - ${to12h(cls.original_end)}</small></td>
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_start">${esc(cls.ramadan_start)}</span> <small style="color:var(--text2)">(${to12h(cls.ramadan_start)})</small></td>
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_end">${esc(cls.ramadan_end)}</span> <small style="color:var(--text2)">(${to12h(cls.ramadan_end)})</small></td>
             <td>${cls.duration_minutes || '?'} min</td>
             <td><span class="mapping-badge mapping-${mt}">${mt}</span></td>
         `;
@@ -783,6 +783,17 @@ function resetApp() {
 // =========================================================================
 // Helpers
 // =========================================================================
+
+function to12h(time24) {
+    if (!time24 || !time24.includes(':')) return time24 || '';
+    const parts = time24.split(':');
+    let h = parseInt(parts[0], 10);
+    const m = parts[1];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    if (h === 0) h = 12;
+    else if (h > 12) h -= 12;
+    return h + ':' + m + ' ' + ampm;
+}
 
 function showAlert(type, msg) {
     hideAlerts();

@@ -30,20 +30,31 @@ EXTRACTION_PROMPT = """You are analyzing a university/college class timetable im
 
 Extract ALL classes/courses visible in this timetable. For each class, identify:
 1. **day** — The day of the week (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
-2. **course** — The course/subject name (e.g., "Mathematics 101", "Physics Lab", "CS201")
-3. **start_time** — Start time in 24-hour HH:MM format (e.g., "08:00", "14:30")
+2. **course** — The course/subject name exactly as written (e.g., "Linear Algebra", "Data Structures", "Machine Learning")
+3. **start_time** — Start time in 24-hour HH:MM format
 4. **end_time** — End time in 24-hour HH:MM format
 5. **room** — Room/location if visible (otherwise empty string)
 
-IMPORTANT RULES:
-- Extract EVERY class block you can see, even if partially visible
-- Use 24-hour format for ALL times
-- If a colored block spans multiple time slots, that is ONE class with the full duration
+CRITICAL TIME READING RULES:
+- READ THE TIME AXIS CAREFULLY. Look at the left/top axis labels (8am, 9am, 10am, 11am, 12pm, 1pm, 2pm, etc)
+- A colored block's TOP edge aligned with "8am" means start_time is "08:00"
+- A colored block's BOTTOM edge aligned with "10am" means end_time is "10:00"  
+- If a block starts at the "8am" row but its top is at the middle (8:30), use "08:30"
+- Convert AM/PM correctly:
+  * 8am = 08:00, 9am = 09:00, 10am = 10:00, 11am = 11:00
+  * 12pm = 12:00, 1pm = 13:00, 2pm = 14:00, 3pm = 15:00
+  * 4pm = 16:00, 5pm = 17:00, 6pm = 18:00, 7pm = 19:00, 8pm = 20:00
+- If a block spans from 8am to 9:30am, that is 08:00 to 09:30 (90 minutes)
+- If a block spans from 1pm to 2:30pm, that is 13:00 to 14:30 (NOT 01:00)
+- MEASURE precisely: count the grid lines/rows the block spans
+- If a block appears to start MID-ROW, use :30 (e.g., 08:30, 09:30)
+
+OTHER RULES:
+- Extract EVERY class block visible, even if partially visible
 - If the same course appears on multiple days, list each as a SEPARATE entry
-- For time: morning classes like 8, 9, 10, 11 AM are 08:00, 09:00, 10:00, 11:00; afternoon 1, 2, 3 PM are 13:00, 14:00, 15:00
 - If you can read text inside colored blocks, that is the course name
 - Include section numbers, course codes if visible
-- If you cannot determine the end time, estimate based on typical 1-hour slots
+- Two blocks of the same color on the same day with a gap = TWO separate classes
 
 Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
 {
