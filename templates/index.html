@@ -202,6 +202,55 @@
             outline: 2px solid var(--accent);
             background: var(--surface2);
         }
+        .time-input {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            width: 90px;
+            cursor: pointer;
+        }
+        .time-input:focus {
+            outline: 2px solid var(--accent);
+            border-color: var(--accent);
+        }
+        .time-input:hover {
+            border-color: var(--accent);
+        }
+        .time-changed {
+            border-color: var(--warning) !important;
+            box-shadow: 0 0 0 1px var(--warning);
+        }
+        .warning-banner {
+            background: rgba(251,191,36,0.12);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius);
+            padding: 0.9rem 1.2rem;
+            margin: 1rem 0;
+            color: var(--warning);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+        .warning-banner strong { color: #fcd34d; }
+        .reconvert-bar {
+            background: rgba(56,189,248,0.08);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 0.8rem 1.2rem;
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .reconvert-bar .info {
+            color: var(--accent);
+            font-size: 0.88rem;
+        }
+        .reconvert-bar .info strong { color: var(--text); }
         .confidence-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -363,10 +412,17 @@
             </div>
         </div>
 
+        <!-- Time Warning -->
+        <div class="warning-banner" id="timeWarningBanner" style="display:none;">
+            &#9888;&#65039; <strong>Heads up:</strong> The AI may confuse <strong>:00</strong> and <strong>:30</strong> boundaries
+            (e.g., reading 9:00 instead of 9:30). Please double-check the start/end times below and
+            edit them if needed — the Ramadan schedule will update automatically.
+        </div>
+
         <!-- Original Schedule -->
         <div class="section">
             <div class="section-header">
-                <h2>&#128203; Original Schedule</h2>
+                <h2>&#128203; Original Schedule <small style="font-size:0.7rem;color:var(--text2);font-weight:400;">&#9998; click times to edit</small></h2>
             </div>
             <div class="table-wrapper">
                 <table class="schedule-table" id="originalTable">
@@ -374,8 +430,8 @@
                         <tr>
                             <th>Day</th>
                             <th>Course</th>
-                            <th>Start</th>
-                            <th>End</th>
+                            <th>Start &#9998;</th>
+                            <th>End &#9998;</th>
                             <th>Duration</th>
                             <th>Confidence</th>
                         </tr>
@@ -383,6 +439,12 @@
                     <tbody></tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Re-convert bar -->
+        <div class="reconvert-bar" id="reconvertBar">
+            <div class="info">&#9998; <strong id="changedCount">0</strong> time(s) changed — click Re-convert to update Ramadan schedule</div>
+            <button class="btn btn-primary" onclick="reconvertSchedule()">&#128260; Re-convert</button>
         </div>
 
         <!-- Ramadan Schedule -->
@@ -446,6 +508,91 @@
 let sessionId = null;
 let originalData = null;
 let ramadanData = null;
+let pendingChanges = 0;
+
+// =========================================================================
+// Client-side Ramadan Lookup Tables (official university timings)
+// =========================================================================
+const MT_LOOKUP = {
+    // 1-hour slots (:30 boundaries)
+    '08:30-09:30':'08:30-09:10','09:30-10:30':'09:10-09:50','10:30-11:30':'09:50-10:30',
+    '11:30-12:30':'10:30-11:10','12:30-13:30':'11:10-11:50','13:30-14:30':'11:50-12:30',
+    '14:30-15:30':'12:30-13:10','15:30-16:30':'13:10-13:50','16:30-17:30':'13:50-14:30',
+    '17:30-18:30':'14:30-15:10','18:30-19:30':'15:10-15:50','19:30-20:30':'15:50-16:30',
+    '20:30-21:30':'16:30-17:10',
+    // 1-hour slots (:00 boundaries)
+    '09:00-10:00':'08:50-09:30','10:00-11:00':'09:30-10:10','11:00-12:00':'10:10-10:50',
+    '12:00-13:00':'10:50-11:30','13:00-14:00':'11:30-12:10','14:00-15:00':'12:10-12:50',
+    '15:00-16:00':'12:50-13:30','16:00-17:00':'13:30-14:10','17:00-18:00':'14:10-14:50',
+    '18:00-19:00':'14:50-15:30','19:00-20:00':'15:30-16:10','20:00-21:00':'16:10-16:50',
+    '21:00-22:00':'16:50-17:30',
+    // 1.5-hour (90 min) slots
+    '08:00-09:30':'08:00-09:00','09:30-11:00':'09:10-10:10','11:00-12:30':'10:10-11:10',
+    '13:30-15:00':'11:50-12:50','15:00-16:30':'12:50-13:50','16:30-18:00':'13:50-14:50',
+    '18:00-19:30':'14:50-15:50','19:30-21:00':'15:50-16:50','21:00-22:30':'16:50-17:50',
+    // 2-hour slots (:30 boundaries)
+    '08:30-10:30':'08:30-09:50','10:30-12:30':'09:50-11:10','12:30-14:30':'11:10-12:30',
+    '14:30-16:30':'12:30-13:50','16:30-18:30':'13:50-15:10','18:30-20:30':'15:10-16:30',
+    '20:30-22:30':'16:30-17:50',
+};
+
+const FRI_LOOKUP = {
+    '08:00-09:00':'08:00-08:40','08:00-10:00':'08:00-09:20','08:00-12:00':'08:00-10:40',
+    '08:30-12:00':'08:30-10:50','09:00-12:00':'08:40-10:40','10:00-12:00':'09:20-10:40',
+    '14:00-15:00':'10:40-11:20','14:00-16:00':'10:40-12:00','14:00-17:00':'14:00-16:00',
+    '14:00-18:00':'14:00-16:40','14:00-19:00':'14:00-17:20','14:30-16:30':'14:00-15:20',
+    '15:00-16:00':'14:00-14:40','15:00-17:00':'14:00-15:20','15:00-18:00':'14:00-16:00',
+    '15:00-19:00':'14:00-16:40','16:00-18:00':'14:40-16:00','16:00-19:00':'14:40-16:40',
+    '16:30-18:30':'15:20-16:40','17:30-20:30':'15:30-17:30','18:00-19:00':'16:40-17:20',
+    '18:00-20:00':'16:00-17:20','18:00-21:00':'16:00-18:00','18:30-20:30':'16:00-17:20',
+    '19:00-20:00':'16:40-17:20',
+};
+
+function toMin(t) { const p = t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+
+function clientConvert(classes) {
+    const result = [];
+    let exact = 0, fuzzy = 0, unmatched = 0;
+    for (const cls of classes) {
+        const s = cls.start_time, e = cls.end_time;
+        const day = cls.day || '';
+        const key = s + '-' + e;
+        const lookup = (day === 'Friday') ? FRI_LOOKUP : MT_LOOKUP;
+        const lookupRef = (day === 'Friday') ? FRI_LOOKUP : MT_LOOKUP;
+
+        if (lookup[key]) {
+            const [rs, re] = lookup[key].split('-');
+            result.push({...cls, original_start:s, original_end:e, ramadan_start:rs, ramadan_end:re,
+                duration_minutes: toMin(re)-toMin(rs), mapping_type:'exact'});
+            exact++;
+        } else {
+            // Fuzzy: find nearest slot
+            const sMin = toMin(s), eMin = toMin(e);
+            let best = null, bestDist = Infinity;
+            for (const k in lookupRef) {
+                const [ks, ke] = k.split('-');
+                const dist = Math.abs(toMin(ks)-sMin) + Math.abs(toMin(ke)-eMin);
+                if (dist < bestDist) { bestDist = dist; best = {k, v: lookupRef[k]}; }
+            }
+            if (best && bestDist <= 35) {
+                const [rs, re] = best.v.split('-');
+                result.push({...cls, original_start:s, original_end:e, ramadan_start:rs, ramadan_end:re,
+                    duration_minutes: toMin(re)-toMin(rs), mapping_type:'fuzzy',
+                    fuzzy_matched_from: best.k});
+                fuzzy++;
+            } else {
+                result.push({...cls, original_start:s, original_end:e, ramadan_start:s, ramadan_end:e,
+                    mapping_type:'unmatched', warning:'No Ramadan mapping found.'});
+                unmatched++;
+            }
+        }
+    }
+    return {
+        classes: result,
+        total_classes: result.length,
+        conversion_stats: {exact_matches: exact, fuzzy_matches: fuzzy, unmatched},
+    };
+}
 
 // =========================================================================
 // DOM Refs
@@ -555,6 +702,11 @@ function renderResults() {
     hideProgress();
     uploadZone.classList.add('hidden');
     resultsSection.classList.remove('hidden');
+    pendingChanges = 0;
+    document.getElementById('reconvertBar').style.display = 'none';
+
+    // Show time warning
+    document.getElementById('timeWarningBanner').style.display = 'block';
 
     // Stats
     document.getElementById('statClasses').textContent = originalData.total_classes;
@@ -579,20 +731,101 @@ function renderOriginalTable() {
     const tbody = document.querySelector('#originalTable tbody');
     tbody.innerHTML = '';
 
-    for (const cls of (originalData.classes || [])) {
+    for (let i = 0; i < (originalData.classes || []).length; i++) {
+        const cls = originalData.classes[i];
         const conf = cls.confidence || 0;
         const confClass = conf >= 0.7 ? 'high' : conf >= 0.5 ? 'med' : 'low';
+        const dur = cls.duration_minutes || '?';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${esc(cls.day)}</td>
             <td>${esc(cls.course)}</td>
-            <td>${esc(cls.start_time)} <small style="color:var(--text2)">(${to12h(cls.start_time)})</small></td>
-            <td>${esc(cls.end_time)} <small style="color:var(--text2)">(${to12h(cls.end_time)})</small></td>
-            <td>${cls.duration_minutes || '?'} min</td>
+            <td>
+                <input type="time" class="time-input" value="${esc(cls.start_time)}" data-idx="${i}" data-field="start_time" data-orig="${esc(cls.start_time)}" step="1800">
+                <small style="color:var(--text2);display:block;margin-top:2px">${to12h(cls.start_time)}</small>
+            </td>
+            <td>
+                <input type="time" class="time-input" value="${esc(cls.end_time)}" data-idx="${i}" data-field="end_time" data-orig="${esc(cls.end_time)}" step="1800">
+                <small style="color:var(--text2);display:block;margin-top:2px">${to12h(cls.end_time)}</small>
+            </td>
+            <td class="dur-cell">${dur} min</td>
             <td><span class="confidence-badge confidence-${confClass}">${Math.round(conf*100)}%</span></td>
         `;
         tbody.appendChild(tr);
     }
+
+    // Attach change listeners to all time inputs
+    document.querySelectorAll('#originalTable .time-input').forEach(inp => {
+        inp.addEventListener('change', onTimeInputChange);
+    });
+}
+
+function onTimeInputChange(e) {
+    const inp = e.target;
+    const idx = parseInt(inp.dataset.idx);
+    const field = inp.dataset.field;
+    const orig = inp.dataset.orig;
+    const newVal = inp.value;
+
+    // Update the 12h label below
+    const small = inp.parentElement.querySelector('small');
+    if (small) small.textContent = to12h(newVal);
+
+    // Highlight changed inputs
+    if (newVal !== orig) {
+        inp.classList.add('time-changed');
+    } else {
+        inp.classList.remove('time-changed');
+    }
+
+    // Update duration display
+    const row = inp.closest('tr');
+    const startInp = row.querySelector('[data-field="start_time"]');
+    const endInp = row.querySelector('[data-field="end_time"]');
+    if (startInp && endInp) {
+        const durMin = toMin(endInp.value) - toMin(startInp.value);
+        const durCell = row.querySelector('.dur-cell');
+        if (durCell) durCell.textContent = (durMin > 0 ? durMin : '?') + ' min';
+    }
+
+    // Count total changes
+    pendingChanges = document.querySelectorAll('#originalTable .time-input.time-changed').length;
+    const bar = document.getElementById('reconvertBar');
+    if (pendingChanges > 0) {
+        bar.style.display = 'flex';
+        document.getElementById('changedCount').textContent = pendingChanges;
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+function reconvertSchedule() {
+    // Gather updated classes from the original table inputs
+    const classes = JSON.parse(JSON.stringify(originalData.classes));
+    document.querySelectorAll('#originalTable .time-input').forEach(inp => {
+        const idx = parseInt(inp.dataset.idx);
+        const field = inp.dataset.field;
+        classes[idx][field] = inp.value;
+        // Update the stored data-orig so future edits track correctly
+        inp.dataset.orig = inp.value;
+        inp.classList.remove('time-changed');
+    });
+
+    // Update originalData
+    originalData.classes = classes;
+
+    // Re-run conversion client-side
+    ramadanData = clientConvert(classes);
+
+    // Update UI
+    renderRamadanTable();
+    document.getElementById('statExact').textContent =
+        ramadanData.conversion_stats?.exact_matches || 0;
+
+    pendingChanges = 0;
+    document.getElementById('reconvertBar').style.display = 'none';
+    showAlert('success', 'Schedule re-converted with your corrected times!');
+    renderWarnings();
 }
 
 function renderRamadanTable() {
@@ -774,9 +1007,12 @@ function resetApp() {
     sessionId = null;
     originalData = null;
     ramadanData = null;
+    pendingChanges = 0;
     resultsSection.classList.add('hidden');
     uploadZone.classList.remove('hidden');
     fileInput.value = '';
+    document.getElementById('timeWarningBanner').style.display = 'none';
+    document.getElementById('reconvertBar').style.display = 'none';
     hideAlerts();
 }
 
