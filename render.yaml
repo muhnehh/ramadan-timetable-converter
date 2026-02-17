@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ramadan-timetable
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: DEFAULT_TIMEZONE
+        value: Asia/Dubai
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "20"
+      - key: DEBUG
+        value: "false"

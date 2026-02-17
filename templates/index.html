@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ramadan Timetable Converter</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #334155;
+            --border: #475569;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --accent: #38bdf8;
+            --accent2: #818cf8;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --gold: #f59e0b;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ---- Header ---- */
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--gold), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: var(--text2);
+            margin-top: 0.3rem;
+            font-size: 0.95rem;
+        }
+
+        /* ---- Container ---- */
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ---- Upload Zone ---- */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--surface);
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.05);
+        }
+        .upload-zone .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .upload-zone h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .upload-zone p { color: var(--text2); font-size: 0.9rem; }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* ---- Progress Bar ---- */
+        .progress-container {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        .progress-bar {
+            height: 6px;
+            background: var(--surface2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 3px;
+        }
+        .progress-text {
+            text-align: center;
+            color: var(--text2);
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        /* ---- Alerts ---- */
+        .alert {
+            padding: 1rem 1.2rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert.error { background: rgba(248,113,113,0.15); border: 1px solid var(--danger); color: var(--danger); }
+        .alert.success { background: rgba(74,222,128,0.15); border: 1px solid var(--success); color: var(--success); }
+        .alert.warning { background: rgba(251,191,36,0.15); border: 1px solid var(--warning); color: var(--warning); }
+
+        /* ---- Stats Row ---- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1.2rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stat-card .label {
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
+        /* ---- Sections ---- */
+        .section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-header h2 {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ---- Table ---- */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .schedule-table th {
+            background: var(--surface2);
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        .schedule-table td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+        }
+        .schedule-table tr:hover td {
+            background: rgba(56, 189, 248, 0.03);
+        }
+        .schedule-table .editable {
+            cursor: text;
+            border-bottom: 1px dashed var(--border);
+            min-width: 60px;
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .schedule-table .editable:focus {
+            outline: 2px solid var(--accent);
+            background: var(--surface2);
+        }
+        .confidence-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .confidence-high { background: rgba(74,222,128,0.2); color: var(--success); }
+        .confidence-med { background: rgba(251,191,36,0.2); color: var(--warning); }
+        .confidence-low { background: rgba(248,113,113,0.2); color: var(--danger); }
+
+        .mapping-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .mapping-exact { background: rgba(74,222,128,0.2); color: var(--success); }
+        .mapping-fuzzy { background: rgba(251,191,36,0.2); color: var(--warning); }
+        .mapping-unmatched { background: rgba(248,113,113,0.2); color: var(--danger); }
+
+        /* ---- Buttons ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: #0f172a; }
+        .btn-primary:hover:not(:disabled) { background: #7dd3fc; }
+        .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover:not(:disabled) { background: var(--border); }
+        .btn-success { background: var(--success); color: #0f172a; }
+        .btn-success:hover:not(:disabled) { background: #86efac; }
+        .btn-warning { background: var(--gold); color: #0f172a; }
+        .btn-warning:hover:not(:disabled) { background: #fbbf24; }
+
+        .btn-group {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.5rem;
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text2);
+            font-size: 0.8rem;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .container { padding: 0 1rem; }
+            header h1 { font-size: 1.4rem; }
+            .upload-zone { padding: 2rem 1rem; }
+            .schedule-table { font-size: 0.8rem; }
+            .schedule-table th, .schedule-table td { padding: 0.5rem; }
+            .btn-group { flex-direction: column; }
+        }
+
+        /* ---- Hidden ---- */
+        .hidden { display: none !important; }
+
+        /* ---- Scroll for table ---- */
+        .table-wrapper { overflow-x: auto; }
+
+        /* ---- Spinner ---- */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--text2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---- Modal ---- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal h3 { margin-bottom: 1rem; }
+        .modal .btn-group { padding: 1rem 0 0; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>&#9770; Ramadan Timetable Converter</h1>
+    <p>Upload your timetable &bull; Get Ramadan timing instantly &bull; Sync to Google Calendar</p>
+</header>
+
+<div class="container">
+    <!-- Upload -->
+    <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*,.pdf">
+        <div class="icon">&#128247;</div>
+        <h3>Drop your timetable here</h3>
+        <p>Supports photos, screenshots, and PDFs &bull; Max 20 MB</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">Uploading...</div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert error" id="alertError"></div>
+    <div class="alert success" id="alertSuccess"></div>
+    <div class="alert warning" id="alertWarning"></div>
+
+    <!-- Results -->
+    <div id="resultsSection" class="hidden">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="value" id="statClasses">0</div>
+                <div class="label">Classes Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="statConfidence">0%</div>
+                <div class="label">Avg Confidence</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="statExact">0</div>
+                <div class="label">Exact Matches</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="statConflicts">0</div>
+                <div class="label">Conflicts</div>
+            </div>
+        </div>
+
+        <!-- Original Schedule -->
+        <div class="section">
+            <div class="section-header">
+                <h2>&#128203; Original Schedule</h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="schedule-table" id="originalTable">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Course</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Duration</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Ramadan Schedule -->
+        <div class="section">
+            <div class="section-header">
+                <h2>&#9770; Ramadan Schedule</h2>
+                <button class="btn btn-secondary" onclick="saveEdits()">
+                    &#128190; Save Edits
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table class="schedule-table" id="ramadanTable">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Course</th>
+                            <th>Original</th>
+                            <th>Ramadan Start</th>
+                            <th>Ramadan End</th>
+                            <th>Duration</th>
+                            <th>Mapping</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="exportJSON()">
+                    &#128196; Export JSON
+                </button>
+                <button class="btn btn-primary" onclick="exportCSV()">
+                    &#128202; Export CSV
+                </button>
+                <button class="btn btn-success" onclick="downloadCalendar()">
+                    &#128197; Download Calendar (.ics)
+                </button>
+                <button class="btn btn-warning" onclick="resetApp()">
+                    &#128260; Upload New
+                </button>
+            </div>
+        </div>
+
+        <!-- Warnings -->
+        <div class="section hidden" id="warningsSection">
+            <div class="section-header">
+                <h2>&#9888;&#65039; Warnings</h2>
+            </div>
+            <div id="warningsList" style="padding: 1rem 1.5rem;"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    Ramadan Timetable Converter &bull; Built with AI &bull; 2025
+</footer>
+
+<script>
+// =========================================================================
+// State
+// =========================================================================
+let sessionId = null;
+let originalData = null;
+let ramadanData = null;
+
+// =========================================================================
+// DOM Refs
+// =========================================================================
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const progressContainer = document.getElementById('progressContainer');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const alertError = document.getElementById('alertError');
+const alertSuccess = document.getElementById('alertSuccess');
+const alertWarning = document.getElementById('alertWarning');
+const resultsSection = document.getElementById('resultsSection');
+
+// =========================================================================
+// Upload Handling
+// =========================================================================
+
+// Drag & Drop
+uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+    }
+});
+
+function handleFile(file) {
+    hideAlerts();
+
+    // Validate
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+        showAlert('error', 'File too large. Maximum size is 20 MB.');
+        return;
+    }
+
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/bmp', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+        showAlert('error', `Unsupported file type: ${file.type}`);
+        return;
+    }
+
+    uploadFile(file);
+}
+
+async function uploadFile(file) {
+    showProgress('Uploading timetable...', 10);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        showProgress('Processing image...', 30);
+
+        const resp = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        showProgress('Extracting schedule...', 60);
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || 'Upload failed');
+        }
+
+        showProgress('Converting to Ramadan timing...', 85);
+
+        const data = await resp.json();
+
+        showProgress('Done!', 100);
+
+        if (data.success) {
+            sessionId = data.session_id;
+            originalData = data.original_schedule;
+            ramadanData = data.ramadan_schedule;
+            renderResults();
+            showAlert('success', `Successfully extracted ${data.original_schedule.total_classes} classes!`);
+        } else {
+            throw new Error('Processing returned no results');
+        }
+    } catch (err) {
+        showAlert('error', err.message);
+        hideProgress();
+    }
+}
+
+// =========================================================================
+// Render Results
+// =========================================================================
+
+function renderResults() {
+    hideProgress();
+    uploadZone.classList.add('hidden');
+    resultsSection.classList.remove('hidden');
+
+    // Stats
+    document.getElementById('statClasses').textContent = originalData.total_classes;
+    document.getElementById('statConfidence').textContent =
+        Math.round((originalData.average_confidence || 0) * 100) + '%';
+    document.getElementById('statExact').textContent =
+        ramadanData.conversion_stats?.exact_matches || 0;
+    document.getElementById('statConflicts').textContent =
+        (originalData.conflicts || []).length;
+
+    // Original table
+    renderOriginalTable();
+
+    // Ramadan table
+    renderRamadanTable();
+
+    // Warnings
+    renderWarnings();
+}
+
+function renderOriginalTable() {
+    const tbody = document.querySelector('#originalTable tbody');
+    tbody.innerHTML = '';
+
+    for (const cls of (originalData.classes || [])) {
+        const conf = cls.confidence || 0;
+        const confClass = conf >= 0.7 ? 'high' : conf >= 0.5 ? 'med' : 'low';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${esc(cls.day)}</td>
+            <td>${esc(cls.course)}</td>
+            <td>${esc(cls.start_time)}</td>
+            <td>${esc(cls.end_time)}</td>
+            <td>${cls.duration_minutes || '?'} min</td>
+            <td><span class="confidence-badge confidence-${confClass}">${Math.round(conf*100)}%</span></td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+function renderRamadanTable() {
+    const tbody = document.querySelector('#ramadanTable tbody');
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < (ramadanData.classes || []).length; i++) {
+        const cls = ramadanData.classes[i];
+        const mt = cls.mapping_type || 'unmatched';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="day">${esc(cls.day)}</span></td>
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="course">${esc(cls.course)}</span></td>
+            <td>${esc(cls.original_start)} - ${esc(cls.original_end)}</td>
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_start">${esc(cls.ramadan_start)}</span></td>
+            <td><span class="editable" contenteditable="true" data-idx="${i}" data-field="ramadan_end">${esc(cls.ramadan_end)}</span></td>
+            <td>${cls.duration_minutes || '?'} min</td>
+            <td><span class="mapping-badge mapping-${mt}">${mt}</span></td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+function renderWarnings() {
+    const allWarnings = [
+        ...(originalData.warnings || []),
+        ...(ramadanData.warnings || []),
+    ];
+
+    const section = document.getElementById('warningsSection');
+    const list = document.getElementById('warningsList');
+
+    if (allWarnings.length === 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    list.innerHTML = allWarnings.map(w =>
+        `<div style="padding: 0.4rem 0; color: var(--warning);">&#9888;&#65039; ${esc(w)}</div>`
+    ).join('');
+}
+
+// =========================================================================
+// Actions
+// =========================================================================
+
+async function saveEdits() {
+    const editables = document.querySelectorAll('#ramadanTable .editable');
+    let classes = JSON.parse(JSON.stringify(ramadanData.classes));
+
+    editables.forEach(el => {
+        const idx = parseInt(el.dataset.idx);
+        const field = el.dataset.field;
+        classes[idx][field] = el.textContent.trim();
+    });
+
+    try {
+        const resp = await fetch('/api/update-schedule', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({session_id: sessionId, classes}),
+        });
+        const data = await resp.json();
+        if (data.success) {
+            ramadanData = data.ramadan_schedule;
+            renderRamadanTable();
+            showAlert('success', 'Schedule updated successfully!');
+        }
+    } catch (err) {
+        showAlert('error', 'Failed to save edits: ' + err.message);
+    }
+}
+
+function exportJSON() {
+    if (!sessionId) return;
+    window.open(`/api/export/json?session_id=${sessionId}`, '_blank');
+}
+
+function exportCSV() {
+    if (!sessionId) return;
+    window.open(`/api/export/csv?session_id=${sessionId}`, '_blank');
+}
+
+function downloadCalendar() {
+    if (!sessionId) return;
+    window.open(`/api/export/ics?session_id=${sessionId}`, '_blank');
+    showAlert('success', 'Calendar file downloaded! Open it or import it into Google Calendar, Outlook, or Apple Calendar.');
+}
+
+function resetApp() {
+    sessionId = null;
+    originalData = null;
+    ramadanData = null;
+    resultsSection.classList.add('hidden');
+    uploadZone.classList.remove('hidden');
+    fileInput.value = '';
+    hideAlerts();
+}
+
+// =========================================================================
+// Helpers
+// =========================================================================
+
+function showAlert(type, msg) {
+    hideAlerts();
+    const el = type === 'error' ? alertError :
+               type === 'success' ? alertSuccess : alertWarning;
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 8000);
+}
+
+function hideAlerts() {
+    alertError.style.display = 'none';
+    alertSuccess.style.display = 'none';
+    alertWarning.style.display = 'none';
+}
+
+function showProgress(text, pct) {
+    progressContainer.style.display = 'block';
+    progressFill.style.width = pct + '%';
+    progressText.textContent = text;
+}
+
+function hideProgress() {
+    setTimeout(() => {
+        progressContainer.style.display = 'none';
+        progressFill.style.width = '0%';
+    }, 500);
+}
+
+function esc(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// Check for callback redirect
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('calendar') === 'connected') {
+    showAlert('success', 'Google Calendar connected! You can now sync your schedule.');
+}
+</script>
+
+</body>
+</html>
