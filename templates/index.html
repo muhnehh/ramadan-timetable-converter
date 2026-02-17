@@ -964,9 +964,14 @@ function downloadCalendar() {
         const currentDay = now.getDay(); // 0=Sun
         let diff = targetDay - currentDay;
         if (diff < 0) diff += 7;
+        if (diff === 0) diff = 7; // schedule starts next week
         const nextDate = new Date(now);
         nextDate.setDate(now.getDate() + diff);
-        const dateStr = nextDate.toISOString().slice(0,10).replace(/-/g,'');
+        // Use local date parts to avoid UTC shift
+        const yy = nextDate.getFullYear();
+        const mm = String(nextDate.getMonth()+1).padStart(2,'0');
+        const dd = String(nextDate.getDate()).padStart(2,'0');
+        const dateStr = yy + mm + dd;
 
         const startIcs = ramStart.replace(':','') + '00';
         const endIcs = ramEnd.replace(':','') + '00';
