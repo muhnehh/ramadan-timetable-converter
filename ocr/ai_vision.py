@@ -18,6 +18,9 @@ import structlog
 
 logger = structlog.get_logger()
 
+# Import valid slot tables for post-extraction snapping
+from conversion.ramadan_converter import MT_LOOKUP, FRI_LOOKUP, FRI_DAYS
+
 # Try importing google.genai (new SDK)
 try:
     from google import genai
@@ -26,50 +29,75 @@ except ImportError:
     GEMINI_AVAILABLE = False
     genai = None
 
-EXTRACTION_PROMPT = """You are analyzing a university/college class timetable image.
+EXTRACTION_PROMPT = """You are analyzing a university class timetable image (grid format).
 
-Extract ALL classes/courses visible in this timetable. For each class, identify:
-1. **day** — The day of the week (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
-2. **course** — The course/subject name exactly as written (e.g., "Linear Algebra", "Data Structures", "Machine Learning")
-3. **start_time** — Start time in 24-hour HH:MM format
-4. **end_time** — End time in 24-hour HH:MM format
-5. **room** — Room/location if visible (otherwise empty string)
+Extract ALL classes/courses. For each class identify:
+1. **day** — Day of week (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
+2. **course** — Course name exactly as written
+3. **start_time** — 24h HH:MM
+4. **end_time** — 24h HH:MM
+5. **room** — Room if visible (else empty string)
 
-CRITICAL TIME READING RULES:
-- READ THE TIME AXIS CAREFULLY. Look at the left/top axis labels (8am, 9am, 10am, 11am, 12pm, 1pm, 2pm, etc)
-- A colored block's TOP edge aligned with "8am" means start_time is "08:00"
-- A colored block's BOTTOM edge aligned with "10am" means end_time is "10:00"  
-- If a block starts at the "8am" row but its top is at the middle (8:30), use "08:30"
-- Convert AM/PM correctly:
-  * 8am = 08:00, 9am = 09:00, 10am = 10:00, 11am = 11:00
-  * 12pm = 12:00, 1pm = 13:00, 2pm = 14:00, 3pm = 15:00
-  * 4pm = 16:00, 5pm = 17:00, 6pm = 18:00, 7pm = 19:00, 8pm = 20:00
-- If a block spans from 8am to 9:30am, that is 08:00 to 09:30 (90 minutes)
-- If a block spans from 1pm to 2:30pm, that is 13:00 to 14:30 (NOT 01:00)
-- MEASURE precisely: count the grid lines/rows the block spans
-- If a block appears to start MID-ROW, use :30 (e.g., 08:30, 09:30)
+═══════════════════════════════════════════════════
+  CRITICAL: HOW TO READ TIMES FROM THE GRID
+═══════════════════════════════════════════════════
+
+The timetable has a VERTICAL time axis with labeled hour lines (8am, 9am, 10am, …).
+Each colored block represents one class.
+
+RULE 1 — EDGE ALIGNMENT:
+• If a block's TOP edge is exactly ON a labeled hour line → that hour :00
+• If a block's TOP edge is HALFWAY between two hour lines → use :30
+• Same logic for the BOTTOM edge (= end time)
+
+RULE 2 — HALF-ROW vs FULL-ROW:
+• Look at the DISTANCE from the nearest hour line to the block edge.
+  - Edge ON the line = :00   (e.g., top at the "9am" line → 09:00)
+  - Edge HALFWAY down = :30  (e.g., top halfway between "9am" and "10am" → 09:30)
+  - NEVER use :15 or :45 — university classes always start/end at :00 or :30.
+
+RULE 3 — DURATION CHECK:
+After reading start and end, verify the duration is one of:
+  60 min (1 grid row)   — e.g., 09:00→10:00, 09:30→10:30
+  90 min (1.5 grid rows) — e.g., 08:00→09:30, 09:30→11:00
+  120 min (2 grid rows)  — e.g., 08:30→10:30, 14:30→16:30
+If your reading gives a non-standard duration (e.g., 70 min, 100 min, 50 min),
+re-examine the block edges — you likely misread a :00 as :30 or vice versa.
+
+RULE 4 — AM/PM conversion:
+  8am=08:00  9am=09:00  10am=10:00  11am=11:00
+  12pm=12:00  1pm=13:00  2pm=14:00  3pm=15:00
+  4pm=16:00  5pm=17:00  6pm=18:00  7pm=19:00  8pm=20:00
+
+RULE 5 — COMMON VALID SLOTS (Mon-Thu):
+  1-hr (:30 start): 08:30-09:30, 09:30-10:30, 10:30-11:30, 11:30-12:30, 12:30-13:30, 13:30-14:30, 14:30-15:30, 15:30-16:30, 16:30-17:30, 17:30-18:30, 18:30-19:30
+  1-hr (:00 start): 09:00-10:00, 10:00-11:00, 11:00-12:00, 12:00-13:00, 13:00-14:00, 14:00-15:00, 15:00-16:00, 16:00-17:00, 17:00-18:00, 18:00-19:00, 19:00-20:00
+  1.5-hr: 08:00-09:30, 09:30-11:00, 11:00-12:30, 13:30-15:00, 15:00-16:30, 16:30-18:00, 18:00-19:30, 19:30-21:00
+  2-hr: 08:30-10:30, 10:30-12:30, 12:30-14:30, 14:30-16:30, 16:30-18:30, 18:30-20:30
+Your extracted (start, end) should match one of these slots. If it doesn't, re-examine.
+
+═══════════════════════════════════════════════════
 
 OTHER RULES:
-- Extract EVERY class block visible, even if partially visible
-- If the same course appears on multiple days, list each as a SEPARATE entry
-- If you can read text inside colored blocks, that is the course name
-- Include section numbers, course codes if visible
-- Two blocks of the same color on the same day with a gap = TWO separate classes
+- Extract EVERY colored block, even if partially visible
+- Same course on multiple days = SEPARATE entries
+- Two blocks of same color on same day with a gap = TWO separate classes
+- Include section numbers / course codes if visible
 
-Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
+Return ONLY valid JSON (no markdown, no explanation):
 {
     "classes": [
         {
             "day": "Monday",
-            "course": "Course Name Here",
-            "start_time": "08:00",
-            "end_time": "09:00",
+            "course": "Course Name",
+            "start_time": "09:30",
+            "end_time": "11:00",
             "room": ""
         }
     ]
 }
 
-If you cannot read the timetable at all, return: {"classes": [], "error": "Could not read timetable"}
+If unreadable: {"classes": [], "error": "Could not read timetable"}
 """
 
 
@@ -331,6 +359,10 @@ class AIVisionExtractor:
             duration = 60
             end = self._add_minutes(start, 60)
 
+        # ── Snap to nearest valid university slot ──
+        start, end = self._snap_to_valid_slot(start, end, day)
+        duration = self._duration_minutes(start, end)
+
         return {
             "day": day,
             "course": course,
@@ -340,6 +372,59 @@ class AIVisionExtractor:
             "room": room,
             "confidence": 0.85,
         }
+
+    def _snap_to_valid_slot(
+        self, start: str, end: str, day: str
+    ) -> tuple:
+        """
+        Snap (start, end) to the nearest valid university time slot.
+        This corrects small Gemini misreads like 09:00→09:30.
+        """
+        lookup = FRI_LOOKUP if day in FRI_DAYS else MT_LOOKUP
+
+        # Check exact match first
+        if (start, end) in lookup:
+            return (start, end)
+
+        s_min = self._time_to_min(start)
+        e_min = self._time_to_min(end)
+        if s_min is None or e_min is None:
+            return (start, end)
+
+        best_slot = None
+        best_dist = float('inf')
+
+        for (ks, ke) in lookup.keys():
+            ks_min = self._time_to_min(ks)
+            ke_min = self._time_to_min(ke)
+            if ks_min is None or ke_min is None:
+                continue
+            dist = abs(s_min - ks_min) + abs(e_min - ke_min)
+            if dist < best_dist:
+                best_dist = dist
+                best_slot = (ks, ke)
+
+        # Allow snap if total deviation is ≤ 35 minutes
+        if best_slot and best_dist <= 35:
+            logger.info(
+                "slot_snap",
+                original=f"{start}-{end}",
+                snapped=f"{best_slot[0]}-{best_slot[1]}",
+                deviation=best_dist,
+                day=day,
+            )
+            return best_slot
+
+        return (start, end)
+
+    @staticmethod
+    def _time_to_min(t: str) -> Optional[int]:
+        """Convert HH:MM to total minutes."""
+        try:
+            parts = t.split(':')
+            return int(parts[0]) * 60 + int(parts[1])
+        except (ValueError, IndexError):
+            return None
 
     def _fix_time(self, t: str) -> Optional[str]:
         """Fix a time string to HH:MM format."""
