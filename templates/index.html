@@ -668,18 +668,105 @@ async function saveEdits() {
 }
 
 function exportJSON() {
-    if (!sessionId) return;
-    window.open(`/api/export/json?session_id=${sessionId}`, '_blank');
+    if (!ramadanData) return;
+    const blob = new Blob([JSON.stringify(ramadanData, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ramadan_schedule.json';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function exportCSV() {
-    if (!sessionId) return;
-    window.open(`/api/export/csv?session_id=${sessionId}`, '_blank');
+    if (!ramadanData) return;
+    const rows = [['Day','Course','Original Start','Original End','Ramadan Start','Ramadan End','Duration (min)']];
+    for (const c of ramadanData.classes || []) {
+        rows.push([c.day, c.course, c.original_start, c.original_end, c.ramadan_start, c.ramadan_end, c.duration_minutes]);
+    }
+    const csv = rows.map(r => r.map(v => '"'+(v||'')+'"').join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ramadan_schedule.csv';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function downloadCalendar() {
-    if (!sessionId) return;
-    window.open(`/api/export/ics?session_id=${sessionId}`, '_blank');
+    if (!ramadanData) return;
+
+    const tz = 'Asia/Dubai';
+    const ramadanEnd = '20260318';  // End of Ramadan 2026 UAE
+    const dayOffsets = {Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0};
+
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Ramadan Timetable Converter//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-TIMEZONE:' + tz,
+    ];
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+    let uid = 0;
+
+    for (const cls of ramadanData.classes || []) {
+        const day = cls.day || '';
+        const course = cls.course || 'Class';
+        const ramStart = cls.ramadan_start || '';
+        const ramEnd = cls.ramadan_end || '';
+        const origStart = cls.original_start || '';
+        const origEnd = cls.original_end || '';
+
+        if (!day || !ramStart || !ramEnd) continue;
+
+        const targetDay = dayOffsets[day];
+        if (targetDay === undefined) continue;
+
+        // Find next occurrence of this weekday
+        const currentDay = now.getDay(); // 0=Sun
+        let diff = targetDay - currentDay;
+        if (diff < 0) diff += 7;
+        const nextDate = new Date(now);
+        nextDate.setDate(now.getDate() + diff);
+        const dateStr = nextDate.toISOString().slice(0,10).replace(/-/g,'');
+
+        const startIcs = ramStart.replace(':','') + '00';
+        const endIcs = ramEnd.replace(':','') + '00';
+        uid++;
+
+        lines.push(
+            'BEGIN:VEVENT',
+            'UID:ramadan-' + uid + '-' + Date.now() + '@timetable',
+            'DTSTAMP:' + stamp,
+            'DTSTART;TZID=' + tz + ':' + dateStr + 'T' + startIcs,
+            'DTEND;TZID=' + tz + ':' + dateStr + 'T' + endIcs,
+            'RRULE:FREQ=WEEKLY;UNTIL=' + ramadanEnd + 'T235959Z',
+            'SUMMARY:[Ramadan] ' + course,
+            'DESCRIPTION:Original: ' + origStart + '-' + origEnd + ' | Ramadan: ' + ramStart + '-' + ramEnd,
+            'STATUS:CONFIRMED',
+            'BEGIN:VALARM',
+            'TRIGGER:-PT15M',
+            'ACTION:DISPLAY',
+            'DESCRIPTION:Reminder: ' + course + ' in 15 minutes',
+            'END:VALARM',
+            'END:VEVENT'
+        );
+    }
+
+    lines.push('END:VCALENDAR');
+    const ics = lines.join('\r\n');
+    const blob = new Blob([ics], {type: 'text/calendar'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ramadan_schedule.ics';
+    a.click();
+    URL.revokeObjectURL(url);
     showAlert('success', 'Calendar file downloaded! Open it or import it into Google Calendar, Outlook, or Apple Calendar.');
 }
 
