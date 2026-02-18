@@ -367,7 +367,7 @@
 
 <header>
     <h1>&#9770; Ramadan Timetable Converter</h1>
-    <p>Upload your timetable &bull; Get Ramadan timing instantly &bull; Sync to Google Calendar</p>
+    <p>Upload your timetable &bull; Get Ramadan timing instantly &bull; Export to Google/Apple Calendar</p>
 </header>
 
 <div class="container">
@@ -714,8 +714,7 @@ function renderResults() {
         Math.round((originalData.average_confidence || 0) * 100) + '%';
     document.getElementById('statExact').textContent =
         ramadanData.conversion_stats?.exact_matches || 0;
-    document.getElementById('statConflicts').textContent =
-        (originalData.conflicts || []).length;
+    updateConflicts();
 
     // Original table
     renderOriginalTable();
@@ -825,6 +824,7 @@ function reconvertSchedule() {
     pendingChanges = 0;
     document.getElementById('reconvertBar').style.display = 'none';
     showAlert('success', 'Schedule re-converted with your corrected times!');
+    updateConflicts();
     renderWarnings();
 }
 
@@ -873,7 +873,7 @@ function renderWarnings() {
 // Actions
 // =========================================================================
 
-async function saveEdits() {
+function saveEdits() {
     const editables = document.querySelectorAll('#ramadanTable .editable');
     let classes = JSON.parse(JSON.stringify(ramadanData.classes));
 
@@ -883,21 +883,11 @@ async function saveEdits() {
         classes[idx][field] = el.textContent.trim();
     });
 
-    try {
-        const resp = await fetch('/api/update-schedule', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({session_id: sessionId, classes}),
-        });
-        const data = await resp.json();
-        if (data.success) {
-            ramadanData = data.ramadan_schedule;
-            renderRamadanTable();
-            showAlert('success', 'Schedule updated successfully!');
-        }
-    } catch (err) {
-        showAlert('error', 'Failed to save edits: ' + err.message);
-    }
+    // Re-convert client-side (no server dependency)
+    ramadanData = clientConvert(classes);
+    renderRamadanTable();
+    updateConflicts();
+    showAlert('success', 'Ramadan schedule updated!');
 }
 
 function exportJSON() {
@@ -1025,6 +1015,43 @@ function resetApp() {
 // Helpers
 // =========================================================================
 
+function detectConflicts(classes) {
+    const conflicts = [];
+    const byDay = {};
+    for (const cls of classes) {
+        const d = cls.day || cls.day || '';
+        if (!byDay[d]) byDay[d] = [];
+        byDay[d].push(cls);
+    }
+    for (const day in byDay) {
+        const sorted = byDay[day].sort((a,b) => {
+            const sa = a.ramadan_start || a.start_time || '';
+            const sb = b.ramadan_start || b.start_time || '';
+            return sa.localeCompare(sb);
+        });
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const endA = sorted[i].ramadan_end || sorted[i].end_time || '';
+            const startB = sorted[i+1].ramadan_start || sorted[i+1].start_time || '';
+            if (endA > startB) {
+                conflicts.push({
+                    day: day,
+                    class_a: sorted[i].course || '',
+                    class_b: sorted[i+1].course || '',
+                });
+            }
+        }
+    }
+    return conflicts;
+}
+
+function updateConflicts() {
+    const conflicts = detectConflicts(ramadanData.classes || []);
+    document.getElementById('statConflicts').textContent = conflicts.length;
+    // Color the stat card
+    const el = document.getElementById('statConflicts');
+    el.style.color = conflicts.length > 0 ? 'var(--danger)' : 'var(--accent)';
+}
+
 function to12h(time24) {
     if (!time24 || !time24.includes(':')) return time24 || '';
     const parts = time24.split(':');
@@ -1071,11 +1098,7 @@ function esc(str) {
     return d.innerHTML;
 }
 
-// Check for callback redirect
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('calendar') === 'connected') {
-    showAlert('success', 'Google Calendar connected! You can now sync your schedule.');
-}
+
 </script>
 
 </body>

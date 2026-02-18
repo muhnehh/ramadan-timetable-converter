@@ -84,6 +84,12 @@ OTHER RULES:
 - Two blocks of same color on same day with a gap = TWO separate classes
 - Include section numbers / course codes if visible
 
+For each class, also rate your confidence (0.0 to 1.0) in the extracted data:
+- 1.0 = perfectly clear text and precise grid alignment
+- 0.8 = mostly clear but slight ambiguity
+- 0.5 = partially obscured or hard to read
+- 0.3 = guessing from context
+
 Return ONLY valid JSON (no markdown, no explanation):
 {
     "classes": [
@@ -92,7 +98,8 @@ Return ONLY valid JSON (no markdown, no explanation):
             "course": "Course Name",
             "start_time": "09:30",
             "end_time": "11:00",
-            "room": ""
+            "room": "",
+            "confidence": 0.9
         }
     ]
 }
@@ -238,10 +245,11 @@ class AIVisionExtractor:
                                 classes.append(normalized)
 
                         if classes:
+                            avg_conf = sum(c.get('confidence', 0.5) for c in classes) / len(classes)
                             return {
                                 "classes": classes,
                                 "total_classes": len(classes),
-                                "average_confidence": 0.85,
+                                "average_confidence": round(avg_conf, 2),
                                 "conflicts": self._detect_conflicts(classes),
                                 "extraction_method": f"gemini_ai ({model_name})",
                                 "warnings": [],
@@ -287,7 +295,7 @@ class AIVisionExtractor:
                 return {
                     "classes": all_classes,
                     "total_classes": len(all_classes),
-                    "average_confidence": 0.85,
+                    "average_confidence": round(sum(c.get('confidence',0.5) for c in all_classes)/max(len(all_classes),1), 2),
                     "conflicts": self._detect_conflicts(all_classes),
                     "extraction_method": "gemini_ai",
                     "warnings": [],
@@ -327,6 +335,12 @@ class AIVisionExtractor:
         start = cls.get("start_time", "").strip()
         end = cls.get("end_time", "").strip()
         room = cls.get("room", "").strip()
+        raw_confidence = cls.get("confidence", 0.5)
+        try:
+            raw_confidence = float(raw_confidence)
+            raw_confidence = max(0.0, min(1.0, raw_confidence))
+        except (ValueError, TypeError):
+            raw_confidence = 0.5
 
         # Validate day
         valid_days = {
@@ -360,8 +374,24 @@ class AIVisionExtractor:
             end = self._add_minutes(start, 60)
 
         # ── Snap to nearest valid university slot ──
-        start, end = self._snap_to_valid_slot(start, end, day)
+        original_start, original_end = start, end
+        start, end, snap_dist = self._snap_to_valid_slot_with_dist(start, end, day)
         duration = self._duration_minutes(start, end)
+
+        # ── Compute real confidence ──
+        conf = raw_confidence
+        # Penalize if snapping was needed (times were misread)
+        if snap_dist > 0:
+            conf -= min(0.2, snap_dist * 0.01)  # up to -0.2 for large snaps
+        # Penalize non-standard durations
+        if duration not in (40, 50, 60, 80, 90, 100, 120):
+            conf -= 0.1
+        # Boost if slot is an exact match in the lookup
+        lookup = FRI_LOOKUP if day in FRI_DAYS else MT_LOOKUP
+        if (start, end) in lookup:
+            conf = min(conf + 0.05, 1.0)
+        # Clamp
+        conf = round(max(0.1, min(1.0, conf)), 2)
 
         return {
             "day": day,
@@ -370,7 +400,7 @@ class AIVisionExtractor:
             "end_time": end,
             "duration_minutes": duration,
             "room": room,
-            "confidence": 0.85,
+            "confidence": conf,
         }
 
     def _snap_to_valid_slot(
@@ -378,18 +408,28 @@ class AIVisionExtractor:
     ) -> tuple:
         """
         Snap (start, end) to the nearest valid university time slot.
-        This corrects small Gemini misreads like 09:00→09:30.
+        Returns (snapped_start, snapped_end).
+        """
+        s, e, _ = self._snap_to_valid_slot_with_dist(start, end, day)
+        return (s, e)
+
+    def _snap_to_valid_slot_with_dist(
+        self, start: str, end: str, day: str
+    ) -> tuple:
+        """
+        Snap (start, end) to the nearest valid university time slot.
+        Returns (snapped_start, snapped_end, distance).
         """
         lookup = FRI_LOOKUP if day in FRI_DAYS else MT_LOOKUP
 
         # Check exact match first
         if (start, end) in lookup:
-            return (start, end)
+            return (start, end, 0)
 
         s_min = self._time_to_min(start)
         e_min = self._time_to_min(end)
         if s_min is None or e_min is None:
-            return (start, end)
+            return (start, end, 0)
 
         best_slot = None
         best_dist = float('inf')
@@ -413,9 +453,9 @@ class AIVisionExtractor:
                 deviation=best_dist,
                 day=day,
             )
-            return best_slot
+            return (best_slot[0], best_slot[1], best_dist)
 
-        return (start, end)
+        return (start, end, 0)
 
     @staticmethod
     def _time_to_min(t: str) -> Optional[int]:
