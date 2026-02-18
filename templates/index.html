@@ -4,78 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ramadan Timetable Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --surface2: #334155;
-            --border: #475569;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --accent: #38bdf8;
-            --accent2: #818cf8;
+            --bg: #1a1a1a;
+            --surface: #222222;
+            --surface2: #2a2a2a;
+            --border: #333333;
+            --text: #ffffff;
+            --text2: #888888;
+            --text3: #555555;
+            --accent: #ffffff;
+            --accent2: #cccccc;
             --success: #4ade80;
             --warning: #fbbf24;
             --danger: #f87171;
             --gold: #f59e0b;
-            --radius: 12px;
+            --radius: 16px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* ---- Header ---- */
         header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 1.5rem 2rem;
+            padding: 3rem 2rem 1rem;
             text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
         }
         header h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(90deg, var(--gold), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 3.2rem;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
-        header p {
+        header .subtitle {
             color: var(--text2);
-            margin-top: 0.3rem;
-            font-size: 0.95rem;
+            margin-top: 0.8rem;
+            font-size: 1.05rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+        }
+        header .uni-badge {
+            display: inline-block;
+            margin-top: 1.2rem;
+            color: var(--text3);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
         }
 
         /* ---- Container ---- */
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ---- Hero / Pre-upload Info ---- */
+        .hero-info {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .hero-info .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 2.5rem;
+        }
+        .hero-info .step {
+            text-align: center;
+        }
+        .hero-info .step-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text3);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        .hero-info .step-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+        .hero-info .step-desc {
+            font-size: 0.82rem;
+            color: var(--text2);
+            line-height: 1.5;
+        }
+        .divider {
+            width: 60px;
+            height: 1px;
+            background: var(--border);
             margin: 2rem auto;
-            padding: 0 1.5rem;
         }
 
         /* ---- Upload Zone ---- */
         .upload-zone {
-            border: 2px dashed var(--border);
+            border: 1.5px dashed var(--border);
             border-radius: var(--radius);
-            padding: 3rem 2rem;
+            padding: 3.5rem 2rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: var(--surface);
+            background: transparent;
             position: relative;
         }
         .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--accent);
-            background: rgba(56, 189, 248, 0.05);
+            border-color: var(--text2);
+            background: rgba(255,255,255,0.02);
         }
-        .upload-zone .icon { font-size: 3rem; margin-bottom: 1rem; }
-        .upload-zone h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-        .upload-zone p { color: var(--text2); font-size: 0.9rem; }
+        .upload-zone .icon {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+        .upload-zone h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
+        }
+        .upload-zone p {
+            color: var(--text2);
+            font-size: 0.82rem;
+            font-weight: 400;
+        }
         .upload-zone input[type="file"] {
             position: absolute;
             inset: 0;
@@ -83,65 +152,130 @@
             cursor: pointer;
         }
 
-        /* ---- Progress Bar ---- */
+        /* ---- Progress / Loading ---- */
         .progress-container {
             display: none;
             margin-top: 1.5rem;
         }
         .progress-bar {
-            height: 6px;
+            height: 3px;
             background: var(--surface2);
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
         }
         .progress-bar .fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            background: var(--text);
             width: 0%;
             transition: width 0.5s ease;
-            border-radius: 3px;
+            border-radius: 2px;
         }
         .progress-text {
             text-align: center;
             color: var(--text2);
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
+            margin-top: 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* ---- Loading Overlay ---- */
+        .loading-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 2rem;
+        }
+        .loading-dots span {
+            width: 10px;
+            height: 10px;
+            background: var(--text3);
+            border-radius: 50%;
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotPulse {
+            0%, 80%, 100% { background: var(--text3); transform: scale(1); }
+            40% { background: var(--text); transform: scale(1.3); }
+        }
+        .loading-status {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+        }
+        .loading-substatus {
+            font-size: 0.8rem;
+            color: var(--text3);
+            font-weight: 400;
+        }
+        .loading-bar-track {
+            width: 200px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            margin-top: 1.5rem;
+            overflow: hidden;
+        }
+        .loading-bar-track .loading-bar-fill {
+            height: 100%;
+            background: var(--text2);
+            width: 0%;
+            transition: width 0.6s ease;
+            border-radius: 1px;
         }
 
         /* ---- Alerts ---- */
         .alert {
             padding: 1rem 1.2rem;
-            border-radius: var(--radius);
+            border-radius: 10px;
             margin: 1rem 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: none;
+            font-weight: 500;
         }
-        .alert.error { background: rgba(248,113,113,0.15); border: 1px solid var(--danger); color: var(--danger); }
-        .alert.success { background: rgba(74,222,128,0.15); border: 1px solid var(--success); color: var(--success); }
-        .alert.warning { background: rgba(251,191,36,0.15); border: 1px solid var(--warning); color: var(--warning); }
+        .alert.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+        .alert.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--success); }
+        .alert.warning { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: var(--warning); }
 
         /* ---- Stats Row ---- */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            margin: 2rem 0;
+            background: var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
         }
         .stat-card {
             background: var(--surface);
-            border-radius: var(--radius);
-            padding: 1.2rem;
+            padding: 1.5rem 1rem;
             text-align: center;
-            border: 1px solid var(--border);
         }
         .stat-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--accent);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
         }
         .stat-card .label {
             color: var(--text2);
-            font-size: 0.85rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             margin-top: 0.3rem;
         }
 
@@ -154,91 +288,98 @@
             overflow: hidden;
         }
         .section-header {
-            padding: 1rem 1.5rem;
+            padding: 1.2rem 1.5rem;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .section-header h2 {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            letter-spacing: -0.02em;
         }
 
         /* ---- Table ---- */
         .schedule-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .schedule-table th {
-            background: var(--surface2);
-            padding: 0.8rem 1rem;
+            background: var(--bg);
+            padding: 0.85rem 1.1rem;
             text-align: left;
             font-weight: 600;
             color: var(--text2);
             text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
         }
         .schedule-table td {
-            padding: 0.7rem 1rem;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            padding: 0.85rem 1.1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 400;
+            white-space: nowrap;
         }
         .schedule-table tr:hover td {
-            background: rgba(56, 189, 248, 0.03);
+            background: rgba(255,255,255,0.02);
         }
         .schedule-table .editable {
             cursor: text;
-            border-bottom: 1px dashed var(--border);
+            border-bottom: 1px dashed var(--text3);
             min-width: 60px;
             display: inline-block;
             padding: 2px 4px;
             border-radius: 4px;
         }
         .schedule-table .editable:focus {
-            outline: 2px solid var(--accent);
+            outline: 1px solid var(--text2);
             background: var(--surface2);
         }
         .time-input {
-            background: var(--surface2);
+            background: var(--bg);
             color: var(--text);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px 6px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            width: 90px;
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            font-family: 'Inter', sans-serif;
+            width: 95px;
             cursor: pointer;
+            font-weight: 500;
         }
         .time-input:focus {
-            outline: 2px solid var(--accent);
-            border-color: var(--accent);
+            outline: 1px solid var(--text2);
+            border-color: var(--text2);
         }
         .time-input:hover {
-            border-color: var(--accent);
+            border-color: var(--text2);
         }
         .time-changed {
             border-color: var(--warning) !important;
             box-shadow: 0 0 0 1px var(--warning);
         }
         .warning-banner {
-            background: rgba(251,191,36,0.12);
-            border: 1px solid var(--warning);
-            border-radius: var(--radius);
+            background: rgba(251,191,36,0.08);
+            border: 1px solid rgba(251,191,36,0.25);
+            border-radius: 10px;
             padding: 0.9rem 1.2rem;
             margin: 1rem 0;
             color: var(--warning);
-            font-size: 0.88rem;
-            line-height: 1.5;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            font-weight: 500;
         }
         .warning-banner strong { color: #fcd34d; }
         .reconvert-bar {
-            background: rgba(56,189,248,0.08);
-            border: 1px solid var(--accent);
-            border-radius: var(--radius);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 0.8rem 1.2rem;
             margin: 1rem 0;
             display: none;
@@ -247,79 +388,95 @@
             gap: 1rem;
         }
         .reconvert-bar .info {
-            color: var(--accent);
-            font-size: 0.88rem;
+            color: var(--text2);
+            font-size: 0.82rem;
+            font-weight: 500;
         }
         .reconvert-bar .info strong { color: var(--text); }
         .confidence-badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
-        .confidence-high { background: rgba(74,222,128,0.2); color: var(--success); }
-        .confidence-med { background: rgba(251,191,36,0.2); color: var(--warning); }
-        .confidence-low { background: rgba(248,113,113,0.2); color: var(--danger); }
+        .confidence-high { background: rgba(74,222,128,0.15); color: var(--success); }
+        .confidence-med { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .confidence-low { background: rgba(248,113,113,0.15); color: var(--danger); }
 
         .mapping-badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .mapping-exact { background: rgba(74,222,128,0.2); color: var(--success); }
-        .mapping-fuzzy { background: rgba(251,191,36,0.2); color: var(--warning); }
-        .mapping-unmatched { background: rgba(248,113,113,0.2); color: var(--danger); }
+        .mapping-exact { background: rgba(74,222,128,0.15); color: var(--success); }
+        .mapping-fuzzy { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .mapping-unmatched { background: rgba(248,113,113,0.15); color: var(--danger); }
 
         /* ---- Buttons ---- */
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 0.65rem 1.3rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
             font-weight: 600;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
             text-decoration: none;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
         }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-primary { background: var(--accent); color: #0f172a; }
-        .btn-primary:hover:not(:disabled) { background: #7dd3fc; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-primary { background: var(--text); color: var(--bg); }
+        .btn-primary:hover:not(:disabled) { background: var(--accent2); }
         .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
         .btn-secondary:hover:not(:disabled) { background: var(--border); }
-        .btn-success { background: var(--success); color: #0f172a; }
+        .btn-success { background: var(--success); color: var(--bg); }
         .btn-success:hover:not(:disabled) { background: #86efac; }
-        .btn-warning { background: var(--gold); color: #0f172a; }
+        .btn-warning { background: var(--gold); color: var(--bg); }
         .btn-warning:hover:not(:disabled) { background: #fbbf24; }
 
         .btn-group {
             display: flex;
-            gap: 0.7rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
-            padding: 1rem 1.5rem;
+            padding: 1.2rem 1.5rem;
         }
 
         /* ---- Footer ---- */
         footer {
             text-align: center;
-            padding: 2rem;
-            color: var(--text2);
-            font-size: 0.8rem;
+            padding: 3rem 2rem;
+            color: var(--text3);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
         }
 
         /* ---- Responsive ---- */
         @media (max-width: 768px) {
-            .container { padding: 0 1rem; }
-            header h1 { font-size: 1.4rem; }
-            .upload-zone { padding: 2rem 1rem; }
-            .schedule-table { font-size: 0.8rem; }
-            .schedule-table th, .schedule-table td { padding: 0.5rem; }
+            .container { padding: 1.5rem 1rem; }
+            header { padding: 2rem 1rem 0.5rem; }
+            header h1 { font-size: 2rem; }
+            .hero-info .steps { grid-template-columns: 1fr; gap: 1.2rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .upload-zone { padding: 2.5rem 1rem; }
+            .schedule-table { font-size: 0.78rem; }
+            .schedule-table th, .schedule-table td { padding: 0.5rem 0.6rem; }
             .btn-group { flex-direction: column; }
+        }
+
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.6rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
         }
 
         /* ---- Hidden ---- */
@@ -331,10 +488,10 @@
         /* ---- Spinner ---- */
         .spinner {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--text2);
-            border-top-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text3);
+            border-top-color: var(--text);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-right: 0.4rem;
@@ -345,7 +502,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -366,23 +523,54 @@
 <body>
 
 <header>
-    <h1>&#9770; Ramadan Timetable Converter</h1>
-    <p>Upload your timetable &bull; Get Ramadan timing instantly &bull; Export to Google/Apple Calendar</p>
+    <h1>Ramadan Timetable<br>Converter</h1>
+    <p class="subtitle">Upload your schedule. Get your Ramadan timings. Export to any calendar.</p>
+    <span class="uni-badge">For Students of Ajman University</span>
 </header>
 
 <div class="container">
+    <!-- Pre-upload: How it works -->
+    <div class="hero-info" id="heroInfo">
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">01</div>
+                <div class="step-title">Upload</div>
+                <div class="step-desc">Take a photo or screenshot of your class timetable and drop it here</div>
+            </div>
+            <div class="step">
+                <div class="step-number">02</div>
+                <div class="step-title">Convert</div>
+                <div class="step-desc">AI reads your schedule and maps it to official Ramadan timing</div>
+            </div>
+            <div class="step">
+                <div class="step-number">03</div>
+                <div class="step-title">Export</div>
+                <div class="step-desc">Download as .ics calendar file for Google, Apple, or Outlook</div>
+            </div>
+        </div>
+        <div class="divider"></div>
+    </div>
+
     <!-- Upload -->
     <div class="upload-zone" id="uploadZone">
         <input type="file" id="fileInput" accept="image/*,.pdf">
-        <div class="icon">&#128247;</div>
+        <div class="icon">&#8593;</div>
         <h3>Drop your timetable here</h3>
-        <p>Supports photos, screenshots, and PDFs &bull; Max 20 MB</p>
+        <p>Photos, screenshots, or PDFs &bull; Max 20 MB</p>
     </div>
 
     <!-- Progress -->
     <div class="progress-container" id="progressContainer">
         <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
         <div class="progress-text" id="progressText">Uploading...</div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div class="loading-status" id="loadingStatus">Processing your timetable</div>
+        <div class="loading-substatus" id="loadingSubstatus">This usually takes 5–10 seconds</div>
+        <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
     </div>
 
     <!-- Alerts -->
@@ -400,7 +588,7 @@
             </div>
             <div class="stat-card">
                 <div class="value" id="statConfidence">0%</div>
-                <div class="label">Avg Confidence</div>
+                <div class="label">Confidence</div>
             </div>
             <div class="stat-card">
                 <div class="value" id="statExact">0</div>
@@ -422,7 +610,7 @@
         <!-- Original Schedule -->
         <div class="section">
             <div class="section-header">
-                <h2>&#128203; Original Schedule <small style="font-size:0.7rem;color:var(--text2);font-weight:400;">&#9998; click times to edit</small></h2>
+                <h2>Original Schedule <small style="font-size:0.65rem;color:var(--text3);font-weight:400;margin-left:0.5rem;">click times to edit</small></h2>
             </div>
             <div class="table-wrapper">
                 <table class="schedule-table" id="originalTable">
@@ -430,8 +618,8 @@
                         <tr>
                             <th>Day</th>
                             <th>Course</th>
-                            <th>Start &#9998;</th>
-                            <th>End &#9998;</th>
+                            <th>Start</th>
+                            <th>End</th>
                             <th>Duration</th>
                             <th>Confidence</th>
                         </tr>
@@ -443,17 +631,15 @@
 
         <!-- Re-convert bar -->
         <div class="reconvert-bar" id="reconvertBar">
-            <div class="info">&#9998; <strong id="changedCount">0</strong> time(s) changed — click Re-convert to update Ramadan schedule</div>
-            <button class="btn btn-primary" onclick="reconvertSchedule()">&#128260; Re-convert</button>
+            <div class="info"><strong id="changedCount">0</strong> time(s) changed — click Re-convert to update</div>
+            <button class="btn btn-primary" onclick="reconvertSchedule()">Re-convert</button>
         </div>
 
         <!-- Ramadan Schedule -->
         <div class="section">
             <div class="section-header">
-                <h2>&#9770; Ramadan Schedule</h2>
-                <button class="btn btn-secondary" onclick="saveEdits()">
-                    &#128190; Save Edits
-                </button>
+                <h2>Ramadan Schedule</h2>
+                <button class="btn btn-secondary" onclick="saveEdits()">Save Edits</button>
             </div>
             <div class="table-wrapper">
                 <table class="schedule-table" id="ramadanTable">
@@ -472,25 +658,17 @@
                 </table>
             </div>
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="exportJSON()">
-                    &#128196; Export JSON
-                </button>
-                <button class="btn btn-primary" onclick="exportCSV()">
-                    &#128202; Export CSV
-                </button>
-                <button class="btn btn-success" onclick="downloadCalendar()">
-                    &#128197; Download Calendar (.ics)
-                </button>
-                <button class="btn btn-warning" onclick="resetApp()">
-                    &#128260; Upload New
-                </button>
+                <button class="btn btn-primary" onclick="exportJSON()">Export JSON</button>
+                <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-success" onclick="downloadCalendar()">Download Calendar (.ics)</button>
+                <button class="btn btn-warning" onclick="resetApp()">Upload New</button>
             </div>
         </div>
 
         <!-- Warnings -->
         <div class="section hidden" id="warningsSection">
             <div class="section-header">
-                <h2>&#9888;&#65039; Warnings</h2>
+                <h2>Warnings</h2>
             </div>
             <div id="warningsList" style="padding: 1rem 1.5rem;"></div>
         </div>
@@ -498,7 +676,7 @@
 </div>
 
 <footer>
-    Ramadan Timetable Converter &bull; 2026
+    RAMADAN TIMETABLE CONVERTER &bull; 2026
 </footer>
 
 <script>
@@ -653,44 +831,71 @@ function handleFile(file) {
 }
 
 async function uploadFile(file) {
-    showProgress('Uploading timetable...', 10);
+    // Hide upload zone, show loading overlay
+    uploadZone.classList.add('hidden');
+    document.getElementById('heroInfo').classList.add('hidden');
+    showLoading('Uploading timetable...', 'Preparing your image', 10);
 
     const formData = new FormData();
     formData.append('file', file);
 
-    try {
-        showProgress('Processing image...', 30);
+    // Animate progress while waiting for AI
+    let fakePct = 15;
+    const progressInterval = setInterval(() => {
+        fakePct += Math.random() * 3;
+        if (fakePct > 82) fakePct = 82;
+        document.getElementById('loadingBarFill').style.width = fakePct + '%';
+        // Cycle through status messages
+        if (fakePct < 30) {
+            document.getElementById('loadingStatus').textContent = 'Uploading timetable...';
+            document.getElementById('loadingSubstatus').textContent = 'Preparing your image';
+        } else if (fakePct < 55) {
+            document.getElementById('loadingStatus').textContent = 'AI is reading your schedule';
+            document.getElementById('loadingSubstatus').textContent = 'Identifying classes, days, and times';
+        } else {
+            document.getElementById('loadingStatus').textContent = 'Almost there...';
+            document.getElementById('loadingSubstatus').textContent = 'Mapping to Ramadan timing';
+        }
+    }, 800);
 
+    try {
         const resp = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
         });
 
-        showProgress('Extracting schedule...', 60);
+        clearInterval(progressInterval);
+        showLoading('Extracting schedule...', 'Reading classes and times', 70);
 
         if (!resp.ok) {
             const err = await resp.json();
             throw new Error(err.detail || 'Upload failed');
         }
 
-        showProgress('Converting to Ramadan timing...', 85);
+        showLoading('Converting to Ramadan timing...', 'Mapping to official university schedule', 90);
 
         const data = await resp.json();
 
-        showProgress('Done!', 100);
+        showLoading('Done!', 'Preparing your results', 100);
 
         if (data.success) {
             sessionId = data.session_id;
             originalData = data.original_schedule;
             ramadanData = data.ramadan_schedule;
-            renderResults();
-            showAlert('success', `Successfully extracted ${data.original_schedule.total_classes} classes!`);
+            setTimeout(() => {
+                hideLoading();
+                renderResults();
+                showAlert('success', `Successfully extracted ${data.original_schedule.total_classes} classes!`);
+            }, 400);
         } else {
             throw new Error('Processing returned no results');
         }
     } catch (err) {
+        clearInterval(progressInterval);
+        hideLoading();
+        uploadZone.classList.remove('hidden');
+        document.getElementById('heroInfo').classList.remove('hidden');
         showAlert('error', err.message);
-        hideProgress();
     }
 }
 
@@ -701,6 +906,7 @@ async function uploadFile(file) {
 function renderResults() {
     hideProgress();
     uploadZone.classList.add('hidden');
+    document.getElementById('heroInfo').classList.add('hidden');
     resultsSection.classList.remove('hidden');
     pendingChanges = 0;
     document.getElementById('reconvertBar').style.display = 'none';
@@ -1005,6 +1211,7 @@ function resetApp() {
     pendingChanges = 0;
     resultsSection.classList.add('hidden');
     uploadZone.classList.remove('hidden');
+    document.getElementById('heroInfo').classList.remove('hidden');
     fileInput.value = '';
     document.getElementById('timeWarningBanner').style.display = 'none';
     document.getElementById('reconvertBar').style.display = 'none';
@@ -1089,6 +1296,20 @@ function hideProgress() {
         progressContainer.style.display = 'none';
         progressFill.style.width = '0%';
     }, 500);
+}
+
+function showLoading(status, substatus, pct) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.add('active');
+    document.getElementById('loadingStatus').textContent = status;
+    document.getElementById('loadingSubstatus').textContent = substatus;
+    document.getElementById('loadingBarFill').style.width = pct + '%';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.remove('active');
+    document.getElementById('loadingBarFill').style.width = '0%';
 }
 
 function esc(str) {
