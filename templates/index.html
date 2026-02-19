@@ -155,7 +155,9 @@
             letter-spacing: -0.01em;
         }
         header .uni-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
             margin-top: 1.2rem;
             color: var(--accent);
             font-size: 0.8rem;
@@ -163,6 +165,11 @@
             letter-spacing: 0.15em;
             text-transform: uppercase;
             opacity: 0.6;
+        }
+        header .uni-badge .uni-logo {
+            width: auto;
+            height: 22px;
+            display: block;
         }
 
         /* ---- Container ---- */
@@ -727,7 +734,10 @@
 <header>
     <h1>Ramadan Timetable<br>Converter<span class="moon-icon">&#127769;</span></h1>
     <p class="subtitle">Upload your schedule. Get your Ramadan timings. Export to any calendar.</p>
-    <span class="uni-badge">For Students of Ajman University</span>
+    <span class="uni-badge">
+        <span>For Students of Ajman University</span>
+        <img class="uni-logo" src="/static/AU_SECONDARY_LOGO.png" alt="Ajman University logo">
+    </span>
 </header>
 
 <div class="container">
