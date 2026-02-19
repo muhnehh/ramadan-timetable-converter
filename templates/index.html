@@ -6,7 +6,7 @@
     <title>Ramadan Timetable Converter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         // Prevent flash of wrong theme
         (function(){
@@ -72,6 +72,8 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html { font-size: 112.5%; /* 18px base instead of 16px — scales all rem sizes up */ }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
@@ -127,10 +129,11 @@
             margin: 0 auto;
         }
         header h1 {
+            font-family: 'Instrument Serif', serif;
             font-size: 3.2rem;
-            font-weight: 900;
+            font-weight: 400;
             color: var(--text);
-            letter-spacing: -0.03em;
+            letter-spacing: -0.01em;
             line-height: 1.1;
             position: relative;
             display: inline-block;
@@ -138,14 +141,23 @@
         }
         header h1 .moon-icon {
             display: inline-block;
-            opacity: 0;
-            transform: translateY(-8px) scale(0.5);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 1;
+            transform: translateY(0) scale(1) rotate(0deg);
             margin-left: 0.3rem;
+            animation: moonPeek 5s ease-in-out infinite;
+        }
+        @keyframes moonPeek {
+            0%   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            70%  { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            78%  { opacity: 0; transform: translateY(-6px) scale(0.6) rotate(-20deg); }
+            88%  { opacity: 0; transform: translateY(8px) scale(0.5) rotate(10deg); }
+            96%  { opacity: 1; transform: translateY(-2px) scale(1.05) rotate(15deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
         }
         header h1:hover .moon-icon {
+            animation-play-state: paused;
             opacity: 1;
-            transform: translateY(0) scale(1) rotate(15deg);
+            transform: translateY(0) scale(1.1) rotate(15deg);
         }
         header .subtitle {
             color: var(--text2);
@@ -194,16 +206,18 @@
             text-align: center;
         }
         .hero-info .step-number {
-            font-size: 2rem;
-            font-weight: 800;
+            font-family: 'Instrument Serif', serif;
+            font-size: 2.4rem;
+            font-weight: 400;
             color: var(--accent);
             margin-bottom: 0.5rem;
             line-height: 1;
             opacity: 0.4;
         }
         .hero-info .step-title {
-            font-size: 0.95rem;
-            font-weight: 700;
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.9rem;
+            font-weight: 400;
             color: var(--text);
             margin-bottom: 0.3rem;
         }
@@ -211,6 +225,19 @@
             font-size: 0.82rem;
             color: var(--text2);
             line-height: 1.5;
+        }
+        .hero-info .step-icon {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .hero-info .step-icon svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--accent);
+            stroke-width: 1.2;
+            fill: none;
+            opacity: 0.5;
         }
         .divider {
             width: 60px;
@@ -284,8 +311,9 @@
             display: none;
         }
         .upload-zone h3 {
-            font-size: 0.95rem;
-            font-weight: 700;
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.05rem;
+            font-weight: 400;
             letter-spacing: 0.01em;
             color: #fff;
             margin: 0;
@@ -351,10 +379,11 @@
             75% { transform: translateY(5px) rotate(-3deg); }
         }
         .loading-quote {
-            font-size: 1rem;
-            font-weight: 500;
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.1rem;
+            font-weight: 400;
             color: var(--text);
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
             margin-bottom: 0.3rem;
             max-width: 420px;
             line-height: 1.5;
@@ -426,8 +455,9 @@
             text-align: center;
         }
         .stat-card .value {
+            font-family: 'Instrument Serif', serif;
             font-size: 2rem;
-            font-weight: 800;
+            font-weight: 400;
             color: var(--accent);
             letter-spacing: -0.03em;
         }
@@ -450,19 +480,25 @@
             backdrop-filter: blur(10px);
         }
         .section-header {
-            padding: 1.2rem 1.5rem;
+            padding: 1.4rem 1.5rem;
             border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            text-align: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
         }
         .section-header h2 {
-            font-size: 0.95rem;
-            font-weight: 700;
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            font-weight: 400;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
+            width: 100%;
         }
 
         /* ---- Table ---- */
@@ -473,7 +509,7 @@
         }
         .schedule-table th {
             background: var(--bg);
-            padding: 0.85rem 1.1rem;
+            padding: 1rem 1.5rem;
             text-align: left;
             font-weight: 600;
             color: var(--text2);
@@ -483,7 +519,7 @@
             white-space: nowrap;
         }
         .schedule-table td {
-            padding: 0.85rem 1.1rem;
+            padding: 1rem 1.5rem;
             border-bottom: 1px solid var(--border);
             font-weight: 400;
             white-space: nowrap;
@@ -673,7 +709,7 @@
         @media (max-width: 768px) {
             .container { padding: 1.5rem 1rem; }
             header { padding: 2rem 1rem 0.5rem; }
-            header h1 { font-size: 2rem; }
+            header h1 { font-size: 2rem; font-weight: 400; }
             .hero-info .steps { grid-template-columns: 1fr; gap: 1.2rem; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
             .upload-zone { padding: 0.8rem 1.8rem; max-width: 260px; width: 260px; }
@@ -683,7 +719,7 @@
         }
 
         @media (max-width: 480px) {
-            header h1 { font-size: 1.6rem; }
+            header h1 { font-size: 1.6rem; font-weight: 400; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
         }
 
@@ -724,7 +760,7 @@
             max-width: 500px;
             width: 90%;
         }
-        .modal h3 { margin-bottom: 1rem; }
+        .modal h3 { font-family: 'Instrument Serif', serif; font-weight: 400; margin-bottom: 1rem; }
         .modal .btn-group { padding: 1rem 0 0; justify-content: flex-end; }
     </style>
 </head>
@@ -753,16 +789,19 @@
                 <div class="step-number">01</div>
                 <div class="step-title">Upload</div>
                 <div class="step-desc">Take a photo or screenshot of your class timetable and drop it here</div>
+                <div class="step-icon"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 32V12M17 19l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 28v10a2 2 0 0 0 2 2h28a2 2 0 0 0 2-2V28" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             </div>
             <div class="step">
                 <div class="step-number">02</div>
                 <div class="step-title">Convert</div>
                 <div class="step-desc">AI reads your schedule and maps it to official Ramadan timing</div>
+                <div class="step-icon"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M36 16l-6-6H14a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V16z" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 10v6h6" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 26h4l2-4 3 8 2-4h4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             </div>
             <div class="step">
                 <div class="step-number">03</div>
                 <div class="step-title">Export</div>
                 <div class="step-desc">Download as .ics calendar file for Google, Apple, or Outlook</div>
+                <div class="step-icon"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="28" height="32" rx="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 8V4M30 8V4M10 16h28" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 24l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 22v6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             </div>
         </div>
         <div class="divider"></div>
@@ -785,7 +824,7 @@
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-moon" id="loadingMoon">&#127769;</div>
+        <div class="loading-emoji" id="loadingEmoji" style="font-size:3rem;margin-bottom:1.2rem;animation:moonFloat 3s ease-in-out infinite;"></div>
         <div class="loading-quote" id="loadingQuote"></div>
         <div class="loading-source" id="loadingSource"></div>
         <div class="loading-status" id="loadingStatus">Processing your timetable</div>
@@ -830,7 +869,7 @@
         <!-- Original Schedule -->
         <div class="section">
             <div class="section-header">
-                <h2>Original Schedule <small style="font-size:0.65rem;color:var(--text3);font-weight:400;margin-left:0.5rem;">click times to edit</small></h2>
+                <h2>Original Schedule <small style="font-size:1rem;color:var(--text3);font-weight:400;margin-left:0.5rem;">click times to edit</small></h2>
             </div>
             <div class="table-wrapper">
                 <table class="schedule-table" id="originalTable">
@@ -929,26 +968,26 @@ let pendingChanges = 0;
 // Ramadan Quotes & Tips (unique, uncommon)
 // =========================================================================
 const RAMADAN_QUOTES = [
-    { text: "The best of you are those who learn the Quran and teach it.", source: "Prophet Muhammad (PBUH) — Bukhari" },
-    { text: "When Ramadan begins, the gates of Paradise are opened and the gates of Hell are closed.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim" },
-    { text: "Whoever feeds a fasting person will have a reward like his, without any reduction.", source: "Prophet Muhammad (PBUH) — Tirmidhi" },
-    { text: "Fasting is a shield. So the fasting person should avoid obscenity and ignorance.", source: "Prophet Muhammad (PBUH) — Bukhari" },
-    { text: "There is a gate in Paradise called Ar-Rayyan, and those who observe fasts will enter through it.", source: "Prophet Muhammad (PBUH) — Bukhari" },
-    { text: "Do not waste water even if you are at a running stream.", source: "Prophet Muhammad (PBUH) — Ibn Majah" },
-    { text: "The supplication of a fasting person is never refused.", source: "Prophet Muhammad (PBUH) — Ibn Majah" },
-    { text: "Whoever stands in prayer during Laylat al-Qadr out of faith will have his past sins forgiven.", source: "Prophet Muhammad (PBUH) — Bukhari" },
-    { text: "Eat suhoor, for in suhoor there is blessing.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim" },
-    { text: "Allah does not look at your appearance or wealth, but at your hearts and deeds.", source: "Prophet Muhammad (PBUH) — Muslim" },
-    { text: "The most beloved deed to Allah is the most regular and constant even if it were little.", source: "Prophet Muhammad (PBUH) — Bukhari" },
-    { text: "Indeed, with hardship comes ease.", source: "Quran 94:6" },
-    { text: "And He found you lost and guided you.", source: "Quran 93:7" },
-    { text: "So verily, with hardship, there is relief.", source: "Quran 94:5" },
-    { text: "Tip: Dates and water are the Sunnah way to break your fast — they restore energy fast.", source: "Ramadan Tip" },
-    { text: "Tip: The last third of the night is when du'a is most accepted — set an alarm before Fajr.", source: "Ramadan Tip" },
-    { text: "Tip: Give even a small amount of charity daily — consistency matters more than amount.", source: "Ramadan Tip" },
-    { text: "Tip: Avoid heavy meals at iftar — eat light, pray Maghrib, then eat more. Your body will thank you.", source: "Ramadan Tip" },
-    { text: "Tip: Read even one page of Quran daily — small steps lead to finishing the whole Quran.", source: "Ramadan Tip" },
-    { text: "Tip: Smile at someone today — it's a charity in itself.", source: "Ramadan Tip" },
+    { text: "The best of you are those who learn the Quran and teach it.", source: "Prophet Muhammad (PBUH) — Bukhari", emoji: "📖" },
+    { text: "When Ramadan begins, the gates of Paradise are opened and the gates of Hell are closed.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim", emoji: "🕌" },
+    { text: "Whoever feeds a fasting person will have a reward like his, without any reduction.", source: "Prophet Muhammad (PBUH) — Tirmidhi", emoji: "🍽️" },
+    { text: "Fasting is a shield. So the fasting person should avoid obscenity and ignorance.", source: "Prophet Muhammad (PBUH) — Bukhari", emoji: "🛡️" },
+    { text: "There is a gate in Paradise called Ar-Rayyan, and those who observe fasts will enter through it.", source: "Prophet Muhammad (PBUH) — Bukhari", emoji: "🚪" },
+    { text: "Do not waste water even if you are at a running stream.", source: "Prophet Muhammad (PBUH) — Ibn Majah", emoji: "💧" },
+    { text: "The supplication of a fasting person is never refused.", source: "Prophet Muhammad (PBUH) — Ibn Majah", emoji: "🤲" },
+    { text: "Whoever stands in prayer during Laylat al-Qadr out of faith will have his past sins forgiven.", source: "Prophet Muhammad (PBUH) — Bukhari", emoji: "✨" },
+    { text: "Eat suhoor, for in suhoor there is blessing.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim", emoji: "🌅" },
+    { text: "Allah does not look at your appearance or wealth, but at your hearts and deeds.", source: "Prophet Muhammad (PBUH) — Muslim", emoji: "❤️" },
+    { text: "The most beloved deed to Allah is the most regular and constant even if it were little.", source: "Prophet Muhammad (PBUH) — Bukhari", emoji: "🕊️" },
+    { text: "Indeed, with hardship comes ease.", source: "Quran 94:6", emoji: "🌤️" },
+    { text: "And He found you lost and guided you.", source: "Quran 93:7", emoji: "🧭" },
+    { text: "So verily, with hardship, there is relief.", source: "Quran 94:5", emoji: "🌈" },
+    { text: "Tip: Dates and water are the Sunnah way to break your fast — they restore energy fast.", source: "Ramadan Tip", emoji: "🌴" },
+    { text: "Tip: The last third of the night is when du'a is most accepted — set an alarm before Fajr.", source: "Ramadan Tip", emoji: "🌙" },
+    { text: "Tip: Give even a small amount of charity daily — consistency matters more than amount.", source: "Ramadan Tip", emoji: "💝" },
+    { text: "Tip: Avoid heavy meals at iftar — eat light, pray Maghrib, then eat more. Your body will thank you.", source: "Ramadan Tip", emoji: "🥗" },
+    { text: "Tip: Read even one page of Quran daily — small steps lead to finishing the whole Quran.", source: "Ramadan Tip", emoji: "📚" },
+    { text: "Tip: Smile at someone today — it's a charity in itself.", source: "Ramadan Tip", emoji: "😊" },
 ];
 let currentQuoteIdx = -1;
 
@@ -1580,9 +1619,12 @@ function showNextQuote() {
     const q = RAMADAN_QUOTES[idx];
     const quoteEl = document.getElementById('loadingQuote');
     const sourceEl = document.getElementById('loadingSource');
+    const emojiEl = document.getElementById('loadingEmoji');
     if (quoteEl) {
         quoteEl.style.opacity = '0';
+        if (emojiEl) emojiEl.style.opacity = '0';
         setTimeout(() => {
+            if (emojiEl) { emojiEl.textContent = q.emoji || '🌙'; emojiEl.style.opacity = '1'; }
             quoteEl.textContent = '"' + q.text + '"';
             sourceEl.textContent = '— ' + q.source;
             quoteEl.style.opacity = '0.9';
