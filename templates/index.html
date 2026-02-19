@@ -214,40 +214,84 @@
 
         /* ---- Upload Zone ---- */
         .upload-zone {
-            border: 1.5px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 3.5rem 2rem;
-            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 280px;
+            width: 280px;
+            margin: 0 auto;
+            padding: 0.95rem 2.4rem;
+            border: none;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: transparent;
             position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 40%, #1d4ed8 100%);
+            box-shadow:
+                0 8px 32px rgba(37,99,235,0.35),
+                0 2px 8px rgba(37,99,235,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.3s ease, background 0.3s ease;
+            text-align: center;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0);
         }
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--accent);
-            background: var(--table-hover);
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 60%; height: 100%;
+            background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.25) 50%, transparent 80%);
+            animation: btn-shine 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes btn-shine {
+            0%   { left: -100%; }
+            20%  { left: 120%; }
+            100% { left: 120%; }
+        }
+        .upload-zone:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(135deg, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.8) 40%, rgba(29,78,216,0.85) 100%);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow:
+                0 14px 40px rgba(37,99,235,0.4),
+                0 5px 14px rgba(37,99,235,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.35),
+                inset 0 -1px 0 rgba(255,255,255,0.1);
+        }
+        .upload-zone:active {
+            transform: translateY(0) scale(0.99);
+            transition: transform 0.12s ease;
+        }
+        .upload-zone.dragover {
+            transform: scale(1.03);
+            box-shadow:
+                0 12px 44px rgba(37,99,235,0.5),
+                0 4px 12px rgba(37,99,235,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.3);
         }
         .upload-zone .icon {
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-            opacity: 0.6;
+            display: none;
         }
         .upload-zone h3 {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            margin-bottom: 0.4rem;
-            letter-spacing: -0.02em;
+            letter-spacing: 0.01em;
+            color: #fff;
+            margin: 0;
         }
         .upload-zone p {
-            color: var(--text2);
-            font-size: 0.82rem;
-            font-weight: 400;
+            display: none;
         }
-        .upload-zone input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
+        .upload-hint {
+            text-align: center;
+            color: var(--text2);
+            font-size: 0.75rem;
+            margin-top: 0.6rem;
+            font-weight: 400;
         }
 
         /* ---- Progress / Loading ---- */
@@ -491,26 +535,31 @@
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: var(--accent);
+            background: linear-gradient(135deg, rgba(59,130,246,0.9) 0%, rgba(37,99,235,0.85) 100%);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             color: #fff;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
+            padding: 0.7rem 1.4rem;
+            border-radius: 50px;
             font-size: 0.82rem;
             font-weight: 600;
             letter-spacing: 0.01em;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            box-shadow:
+                0 8px 32px rgba(37,99,235,0.3),
+                0 2px 8px rgba(37,99,235,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.2);
             opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(16px) scale(0.95);
+            transition: opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             pointer-events: none;
             z-index: 9999;
             display: flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.5rem;
         }
         .update-toast.show {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
         }
         .update-toast .check {
             font-size: 1rem;
@@ -615,7 +664,7 @@
             header h1 { font-size: 2rem; }
             .hero-info .steps { grid-template-columns: 1fr; gap: 1.2rem; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .upload-zone { padding: 2.5rem 1rem; }
+            .upload-zone { padding: 0.8rem 1.8rem; max-width: 260px; width: 260px; }
             .schedule-table { font-size: 0.78rem; }
             .schedule-table th, .schedule-table td { padding: 0.5rem 0.6rem; }
             .btn-group { flex-direction: column; }
@@ -705,11 +754,12 @@
     </div>
 
     <!-- Upload -->
-    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-        <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none;">
-        <div class="icon">&#128247;</div>
-        <h3>Drop your timetable here</h3>
-        <p>or click to browse &bull; Photos, screenshots, PDFs &bull; Max 20 MB</p>
+    <div style="text-align:center;">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none;">
+            <h3>Upload Timetable</h3>
+        </div>
+        <p class="upload-hint">Photos, screenshots, or PDFs &bull; Max 20 MB</p>
     </div>
 
     <!-- Progress -->
@@ -827,8 +877,8 @@
 </div>
 
 <footer>
-    <div class="footer-main">RAMADAN TIMETABLE CONVERTER &bull; 2026</div>
-    <div class="footer-credit">Built by <strong>Muhammed Nehan</strong></div>
+    <div class="footer-main" style="display:none;"></div>
+    <div class="footer-credit">Built by <strong>Muhammed Nehan</strong> &bull; 2026</div>
     <div class="footer-feedback">
         Found a bug or have an idea? &nbsp;
         <a href="mailto:202410365@ajmanuni.ac.ae?subject=Ramadan%20Timetable%20Converter%20Feedback">Send feedback</a>
@@ -1228,7 +1278,7 @@ function showUpdateToast() {
     const toast = document.getElementById('updateToast');
     toast.classList.add('show');
     clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    window._toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
 }
 
 function renderRamadanTable() {
