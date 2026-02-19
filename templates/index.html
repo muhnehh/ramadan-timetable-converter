@@ -7,22 +7,67 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        // Prevent flash of wrong theme
+        (function(){
+            var t = localStorage.getItem('theme');
+            if (t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+        })();
+    </script>
     <style>
         :root {
-            --bg: #1a1a1a;
-            --surface: #222222;
-            --surface2: #2a2a2a;
-            --border: #333333;
+            --bg: #f8f9fc;
+            --surface: rgba(0,0,0,0.03);
+            --surface2: rgba(0,0,0,0.05);
+            --border: rgba(0,0,0,0.1);
+            --text: #0a1628;
+            --text2: rgba(10,22,40,0.55);
+            --text3: rgba(10,22,40,0.3);
+            --accent: #3b7cef;
+            --accent2: #5a93f5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+            --radius: 16px;
+            --grad1: rgba(59,124,239,0.08);
+            --grad2: rgba(59,124,239,0.04);
+            --grad3: rgba(59,124,239,0.02);
+            --input-bg: rgba(0,0,0,0.04);
+            --table-hover: rgba(59,124,239,0.03);
+            --badge-success-bg: rgba(34,197,94,0.12);
+            --badge-warning-bg: rgba(245,158,11,0.12);
+            --badge-danger-bg: rgba(239,68,68,0.12);
+            --btn-text: #ffffff;
+            --section-bg: rgba(255,255,255,0.7);
+            --stat-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0a1628;
+            --surface: rgba(255,255,255,0.05);
+            --surface2: rgba(255,255,255,0.08);
+            --border: rgba(255,255,255,0.1);
             --text: #ffffff;
-            --text2: #888888;
-            --text3: #555555;
-            --accent: #ffffff;
-            --accent2: #cccccc;
+            --text2: rgba(255,255,255,0.55);
+            --text3: rgba(255,255,255,0.3);
+            --accent: #4f8fff;
+            --accent2: #7ba7ff;
             --success: #4ade80;
             --warning: #fbbf24;
             --danger: #f87171;
             --gold: #f59e0b;
-            --radius: 16px;
+            --grad1: rgba(79,143,255,0.15);
+            --grad2: rgba(79,143,255,0.06);
+            --grad3: rgba(79,143,255,0.04);
+            --input-bg: rgba(0,0,0,0.3);
+            --table-hover: rgba(79,143,255,0.03);
+            --badge-success-bg: rgba(74,222,128,0.15);
+            --badge-warning-bg: rgba(251,191,36,0.15);
+            --badge-danger-bg: rgba(248,113,113,0.15);
+            --btn-text: #ffffff;
+            --section-bg: rgba(255,255,255,0.03);
+            --stat-bg: rgba(255,255,255,0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,12 +75,49 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, var(--grad1) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 50%, var(--grad2) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 20% 80%, var(--grad3) 0%, transparent 50%);
+            background-attachment: fixed;
             color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+
+        /* ---- Theme Toggle ---- */
+        .theme-toggle {
+            position: fixed;
+            top: 1.2rem;
+            right: 1.2rem;
+            z-index: 999;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: scale(1.1);
+        }
+        .theme-toggle .icon-sun,
+        .theme-toggle .icon-moon { display: none; }
+        .theme-toggle .icon-sun { display: inline; }
+        [data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+        [data-theme="dark"] .theme-toggle .icon-moon { display: inline; }
 
         /* ---- Header ---- */
         header {
@@ -50,6 +132,20 @@
             color: var(--text);
             letter-spacing: -0.03em;
             line-height: 1.1;
+            position: relative;
+            display: inline-block;
+            cursor: default;
+        }
+        header h1 .moon-icon {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.5);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-left: 0.3rem;
+        }
+        header h1:hover .moon-icon {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotate(15deg);
         }
         header .subtitle {
             color: var(--text2);
@@ -61,16 +157,17 @@
         header .uni-badge {
             display: inline-block;
             margin-top: 1.2rem;
-            color: var(--text3);
+            color: var(--accent);
             font-size: 0.8rem;
             font-weight: 500;
             letter-spacing: 0.15em;
             text-transform: uppercase;
+            opacity: 0.6;
         }
 
         /* ---- Container ---- */
         .container {
-            max-width: 1200px;
+            max-width: 1320px;
             margin: 0 auto;
             padding: 2rem 1.5rem;
         }
@@ -92,9 +189,10 @@
         .hero-info .step-number {
             font-size: 2rem;
             font-weight: 800;
-            color: var(--text3);
+            color: var(--accent);
             margin-bottom: 0.5rem;
             line-height: 1;
+            opacity: 0.4;
         }
         .hero-info .step-title {
             font-size: 0.95rem;
@@ -126,8 +224,8 @@
             position: relative;
         }
         .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--text2);
-            background: rgba(255,255,255,0.02);
+            border-color: var(--accent);
+            background: var(--table-hover);
         }
         .upload-zone .icon {
             font-size: 2.2rem;
@@ -165,7 +263,7 @@
         }
         .progress-bar .fill {
             height: 100%;
-            background: var(--text);
+            background: var(--accent);
             width: 0%;
             transition: width 0.5s ease;
             border-radius: 2px;
@@ -184,39 +282,51 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 4rem 2rem;
+            padding: 5rem 2rem;
             text-align: center;
         }
         .loading-overlay.active {
             display: flex;
         }
-        .loading-dots {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 2rem;
+        .loading-moon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            animation: moonFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(79,143,255,0.2));
         }
-        .loading-dots span {
-            width: 10px;
-            height: 10px;
-            background: var(--text3);
-            border-radius: 50%;
-            animation: dotPulse 1.4s ease-in-out infinite;
+        @keyframes moonFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(5deg); }
+            75% { transform: translateY(5px) rotate(-3deg); }
         }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotPulse {
-            0%, 80%, 100% { background: var(--text3); transform: scale(1); }
-            40% { background: var(--text); transform: scale(1.3); }
-        }
-        .loading-status {
+        .loading-quote {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text);
             letter-spacing: -0.02em;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
+            max-width: 420px;
+            line-height: 1.5;
+            font-style: italic;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+        .loading-source {
+            font-size: 0.72rem;
+            color: var(--text3);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .loading-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent2);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.3rem;
         }
         .loading-substatus {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text3);
             font-weight: 400;
         }
@@ -230,7 +340,7 @@
         }
         .loading-bar-track .loading-bar-fill {
             height: 100%;
-            background: var(--text2);
+            background: var(--accent);
             width: 0%;
             transition: width 0.6s ease;
             border-radius: 1px;
@@ -245,9 +355,9 @@
             display: none;
             font-weight: 500;
         }
-        .alert.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
-        .alert.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--success); }
-        .alert.warning { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: var(--warning); }
+        .alert.error { background: var(--badge-danger-bg); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); }
+        .alert.success { background: var(--badge-success-bg); border: 1px solid rgba(34,197,94,0.3); color: var(--success); }
+        .alert.warning { background: var(--badge-warning-bg); border: 1px solid rgba(245,158,11,0.3); color: var(--warning); }
 
         /* ---- Stats Row ---- */
         .stats-row {
@@ -260,14 +370,14 @@
             overflow: hidden;
         }
         .stat-card {
-            background: var(--surface);
+            background: var(--stat-bg);
             padding: 1.5rem 1rem;
             text-align: center;
         }
         .stat-card .value {
             font-size: 2rem;
             font-weight: 800;
-            color: var(--text);
+            color: var(--accent);
             letter-spacing: -0.03em;
         }
         .stat-card .label {
@@ -281,11 +391,12 @@
 
         /* ---- Sections ---- */
         .section {
-            background: var(--surface);
+            background: var(--section-bg);
             border-radius: var(--radius);
             border: 1px solid var(--border);
             margin: 1.5rem 0;
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
         .section-header {
             padding: 1.2rem 1.5rem;
@@ -327,7 +438,7 @@
             white-space: nowrap;
         }
         .schedule-table tr:hover td {
-            background: rgba(255,255,255,0.02);
+            background: var(--table-hover);
         }
         .schedule-table .editable {
             cursor: text;
@@ -338,35 +449,35 @@
             border-radius: 4px;
         }
         .schedule-table .editable:focus {
-            outline: 1px solid var(--text2);
+            outline: 1px solid var(--accent);
             background: var(--surface2);
         }
         .time-input {
-            background: var(--bg);
+            background: var(--input-bg);
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 5px 8px;
-            font-size: 0.82rem;
+            padding: 6px 10px;
+            font-size: 0.85rem;
             font-family: 'Inter', sans-serif;
-            width: 95px;
+            width: 120px;
             cursor: pointer;
             font-weight: 500;
         }
         .time-input:focus {
-            outline: 1px solid var(--text2);
-            border-color: var(--text2);
+            outline: 1px solid var(--accent);
+            border-color: var(--accent);
         }
         .time-input:hover {
-            border-color: var(--text2);
+            border-color: var(--accent);
         }
         .time-changed {
             border-color: var(--warning) !important;
             box-shadow: 0 0 0 1px var(--warning);
         }
         .warning-banner {
-            background: rgba(251,191,36,0.08);
-            border: 1px solid rgba(251,191,36,0.25);
+            background: var(--badge-warning-bg);
+            border: 1px solid rgba(245,158,11,0.25);
             border-radius: 10px;
             padding: 0.9rem 1.2rem;
             margin: 1rem 0;
@@ -376,23 +487,35 @@
             font-weight: 500;
         }
         .warning-banner strong { color: #fcd34d; }
-        .reconvert-bar {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
+        .update-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: #fff;
+            padding: 0.6rem 1.2rem;
             border-radius: 10px;
-            padding: 0.8rem 1.2rem;
-            margin: 1rem 0;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-        .reconvert-bar .info {
-            color: var(--text2);
             font-size: 0.82rem;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
         }
-        .reconvert-bar .info strong { color: var(--text); }
+        .update-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .update-toast .check {
+            font-size: 1rem;
+            line-height: 1;
+        }
         .confidence-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -401,9 +524,9 @@
             font-weight: 700;
             letter-spacing: 0.02em;
         }
-        .confidence-high { background: rgba(74,222,128,0.15); color: var(--success); }
-        .confidence-med { background: rgba(251,191,36,0.15); color: var(--warning); }
-        .confidence-low { background: rgba(248,113,113,0.15); color: var(--danger); }
+        .confidence-high { background: var(--badge-success-bg); color: var(--success); }
+        .confidence-med { background: var(--badge-warning-bg); color: var(--warning); }
+        .confidence-low { background: var(--badge-danger-bg); color: var(--danger); }
 
         .mapping-badge {
             display: inline-block;
@@ -414,9 +537,9 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .mapping-exact { background: rgba(74,222,128,0.15); color: var(--success); }
-        .mapping-fuzzy { background: rgba(251,191,36,0.15); color: var(--warning); }
-        .mapping-unmatched { background: rgba(248,113,113,0.15); color: var(--danger); }
+        .mapping-exact { background: var(--badge-success-bg); color: var(--success); }
+        .mapping-fuzzy { background: var(--badge-warning-bg); color: var(--warning); }
+        .mapping-unmatched { background: var(--badge-danger-bg); color: var(--danger); }
 
         /* ---- Buttons ---- */
         .btn {
@@ -435,13 +558,13 @@
             letter-spacing: -0.01em;
         }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .btn-primary { background: var(--text); color: var(--bg); }
+        .btn-primary { background: var(--accent); color: var(--btn-text); }
         .btn-primary:hover:not(:disabled) { background: var(--accent2); }
         .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
         .btn-secondary:hover:not(:disabled) { background: var(--border); }
-        .btn-success { background: var(--success); color: var(--bg); }
+        .btn-success { background: var(--success); color: #0a1628; }
         .btn-success:hover:not(:disabled) { background: #86efac; }
-        .btn-warning { background: var(--gold); color: var(--bg); }
+        .btn-warning { background: var(--gold); color: #0a1628; }
         .btn-warning:hover:not(:disabled) { background: #fbbf24; }
 
         .btn-group {
@@ -454,11 +577,35 @@
         /* ---- Footer ---- */
         footer {
             text-align: center;
-            padding: 3rem 2rem;
+            padding: 3rem 2rem 2rem;
             color: var(--text3);
             font-size: 0.75rem;
             font-weight: 500;
+            letter-spacing: 0.02em;
+            line-height: 2;
+        }
+        footer .footer-main {
+            color: var(--text2);
+            font-weight: 600;
             letter-spacing: 0.05em;
+        }
+        footer .footer-credit {
+            margin-top: 0.3rem;
+            font-size: 0.72rem;
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        footer a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        footer .footer-feedback {
+            margin-top: 0.8rem;
+            font-size: 0.7rem;
+            color: var(--text3);
         }
 
         /* ---- Responsive ---- */
@@ -522,8 +669,14 @@
 </head>
 <body>
 
+<!-- Theme Toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light mode">
+    <span class="icon-sun">&#9788;</span>
+    <span class="icon-moon">&#9789;</span>
+</button>
+
 <header>
-    <h1>Ramadan Timetable<br>Converter</h1>
+    <h1>Ramadan Timetable<br>Converter<span class="moon-icon">&#127769;</span></h1>
     <p class="subtitle">Upload your schedule. Get your Ramadan timings. Export to any calendar.</p>
     <span class="uni-badge">For Students of Ajman University</span>
 </header>
@@ -552,11 +705,11 @@
     </div>
 
     <!-- Upload -->
-    <div class="upload-zone" id="uploadZone">
-        <input type="file" id="fileInput" accept="image/*,.pdf">
-        <div class="icon">&#8593;</div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none;">
+        <div class="icon">&#128247;</div>
         <h3>Drop your timetable here</h3>
-        <p>Photos, screenshots, or PDFs &bull; Max 20 MB</p>
+        <p>or click to browse &bull; Photos, screenshots, PDFs &bull; Max 20 MB</p>
     </div>
 
     <!-- Progress -->
@@ -567,7 +720,9 @@
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div class="loading-moon" id="loadingMoon">&#127769;</div>
+        <div class="loading-quote" id="loadingQuote"></div>
+        <div class="loading-source" id="loadingSource"></div>
         <div class="loading-status" id="loadingStatus">Processing your timetable</div>
         <div class="loading-substatus" id="loadingSubstatus">This usually takes 5–10 seconds</div>
         <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
@@ -629,11 +784,7 @@
             </div>
         </div>
 
-        <!-- Re-convert bar -->
-        <div class="reconvert-bar" id="reconvertBar">
-            <div class="info"><strong id="changedCount">0</strong> time(s) changed — click Re-convert to update</div>
-            <button class="btn btn-primary" onclick="reconvertSchedule()">Re-convert</button>
-        </div>
+
 
         <!-- Ramadan Schedule -->
         <div class="section">
@@ -676,10 +827,31 @@
 </div>
 
 <footer>
-    RAMADAN TIMETABLE CONVERTER &bull; 2026
+    <div class="footer-main">RAMADAN TIMETABLE CONVERTER &bull; 2026</div>
+    <div class="footer-credit">Built by <strong>Muhammed Nehan</strong></div>
+    <div class="footer-feedback">
+        Found a bug or have an idea? &nbsp;
+        <a href="mailto:202410365@ajmanuni.ac.ae?subject=Ramadan%20Timetable%20Converter%20Feedback">Send feedback</a>
+    </div>
 </footer>
 
 <script>
+// =========================================================================
+// Theme Toggle (light = default, dark = opt-in)
+// =========================================================================
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+}
+// Apply saved preference on load
+(function() {
+    const saved = localStorage.getItem('theme') || 'light';
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+})();
 // =========================================================================
 // State
 // =========================================================================
@@ -687,6 +859,33 @@ let sessionId = null;
 let originalData = null;
 let ramadanData = null;
 let pendingChanges = 0;
+
+// =========================================================================
+// Ramadan Quotes & Tips (unique, uncommon)
+// =========================================================================
+const RAMADAN_QUOTES = [
+    { text: "The best of you are those who learn the Quran and teach it.", source: "Prophet Muhammad (PBUH) — Bukhari" },
+    { text: "When Ramadan begins, the gates of Paradise are opened and the gates of Hell are closed.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim" },
+    { text: "Whoever feeds a fasting person will have a reward like his, without any reduction.", source: "Prophet Muhammad (PBUH) — Tirmidhi" },
+    { text: "Fasting is a shield. So the fasting person should avoid obscenity and ignorance.", source: "Prophet Muhammad (PBUH) — Bukhari" },
+    { text: "There is a gate in Paradise called Ar-Rayyan, and those who observe fasts will enter through it.", source: "Prophet Muhammad (PBUH) — Bukhari" },
+    { text: "Do not waste water even if you are at a running stream.", source: "Prophet Muhammad (PBUH) — Ibn Majah" },
+    { text: "The supplication of a fasting person is never refused.", source: "Prophet Muhammad (PBUH) — Ibn Majah" },
+    { text: "Whoever stands in prayer during Laylat al-Qadr out of faith will have his past sins forgiven.", source: "Prophet Muhammad (PBUH) — Bukhari" },
+    { text: "Eat suhoor, for in suhoor there is blessing.", source: "Prophet Muhammad (PBUH) — Bukhari & Muslim" },
+    { text: "Allah does not look at your appearance or wealth, but at your hearts and deeds.", source: "Prophet Muhammad (PBUH) — Muslim" },
+    { text: "The most beloved deed to Allah is the most regular and constant even if it were little.", source: "Prophet Muhammad (PBUH) — Bukhari" },
+    { text: "Indeed, with hardship comes ease.", source: "Quran 94:6" },
+    { text: "And He found you lost and guided you.", source: "Quran 93:7" },
+    { text: "So verily, with hardship, there is relief.", source: "Quran 94:5" },
+    { text: "Tip: Dates and water are the Sunnah way to break your fast — they restore energy fast.", source: "Ramadan Tip" },
+    { text: "Tip: The last third of the night is when du'a is most accepted — set an alarm before Fajr.", source: "Ramadan Tip" },
+    { text: "Tip: Give even a small amount of charity daily — consistency matters more than amount.", source: "Ramadan Tip" },
+    { text: "Tip: Avoid heavy meals at iftar — eat light, pray Maghrib, then eat more. Your body will thank you.", source: "Ramadan Tip" },
+    { text: "Tip: Read even one page of Quran daily — small steps lead to finishing the whole Quran.", source: "Ramadan Tip" },
+    { text: "Tip: Smile at someone today — it's a charity in itself.", source: "Ramadan Tip" },
+];
+let currentQuoteIdx = -1;
 
 // =========================================================================
 // Client-side Ramadan Lookup Tables (official university timings)
@@ -834,18 +1033,21 @@ async function uploadFile(file) {
     // Hide upload zone, show loading overlay
     uploadZone.classList.add('hidden');
     document.getElementById('heroInfo').classList.add('hidden');
-    showLoading('Uploading timetable...', 'Preparing your image', 10);
+    showLoadingWithQuote('Uploading timetable...', 'Preparing your image', 10);
 
     const formData = new FormData();
     formData.append('file', file);
 
-    // Animate progress while waiting for AI
+    // Animate progress + cycle quotes while waiting for AI
     let fakePct = 15;
+    let quoteTick = 0;
     const progressInterval = setInterval(() => {
         fakePct += Math.random() * 3;
         if (fakePct > 82) fakePct = 82;
         document.getElementById('loadingBarFill').style.width = fakePct + '%';
-        // Cycle through status messages
+        quoteTick++;
+
+        // Cycle status messages
         if (fakePct < 30) {
             document.getElementById('loadingStatus').textContent = 'Uploading timetable...';
             document.getElementById('loadingSubstatus').textContent = 'Preparing your image';
@@ -855,6 +1057,11 @@ async function uploadFile(file) {
         } else {
             document.getElementById('loadingStatus').textContent = 'Almost there...';
             document.getElementById('loadingSubstatus').textContent = 'Mapping to Ramadan timing';
+        }
+
+        // Cycle quote every ~6 seconds
+        if (quoteTick % 8 === 0) {
+            showNextQuote();
         }
     }, 800);
 
@@ -909,7 +1116,6 @@ function renderResults() {
     document.getElementById('heroInfo').classList.add('hidden');
     resultsSection.classList.remove('hidden');
     pendingChanges = 0;
-    document.getElementById('reconvertBar').style.display = 'none';
 
     // Show time warning
     document.getElementById('timeWarningBanner').style.display = 'block';
@@ -947,11 +1153,9 @@ function renderOriginalTable() {
             <td>${esc(cls.course)}</td>
             <td>
                 <input type="time" class="time-input" value="${esc(cls.start_time)}" data-idx="${i}" data-field="start_time" data-orig="${esc(cls.start_time)}" step="1800">
-                <small style="color:var(--text2);display:block;margin-top:2px">${to12h(cls.start_time)}</small>
             </td>
             <td>
                 <input type="time" class="time-input" value="${esc(cls.end_time)}" data-idx="${i}" data-field="end_time" data-orig="${esc(cls.end_time)}" step="1800">
-                <small style="color:var(--text2);display:block;margin-top:2px">${to12h(cls.end_time)}</small>
             </td>
             <td class="dur-cell">${dur} min</td>
             <td><span class="confidence-badge confidence-${confClass}">${Math.round(conf*100)}%</span></td>
@@ -972,10 +1176,6 @@ function onTimeInputChange(e) {
     const orig = inp.dataset.orig;
     const newVal = inp.value;
 
-    // Update the 12h label below
-    const small = inp.parentElement.querySelector('small');
-    if (small) small.textContent = to12h(newVal);
-
     // Highlight changed inputs
     if (newVal !== orig) {
         inp.classList.add('time-changed');
@@ -993,15 +1193,11 @@ function onTimeInputChange(e) {
         if (durCell) durCell.textContent = (durMin > 0 ? durMin : '?') + ' min';
     }
 
-    // Count total changes
-    pendingChanges = document.querySelectorAll('#originalTable .time-input.time-changed').length;
-    const bar = document.getElementById('reconvertBar');
-    if (pendingChanges > 0) {
-        bar.style.display = 'flex';
-        document.getElementById('changedCount').textContent = pendingChanges;
-    } else {
-        bar.style.display = 'none';
-    }
+    // Auto-reconvert with debounce
+    clearTimeout(window._reconvertTimer);
+    window._reconvertTimer = setTimeout(() => {
+        reconvertSchedule();
+    }, 400);
 }
 
 function reconvertSchedule() {
@@ -1011,27 +1207,28 @@ function reconvertSchedule() {
         const idx = parseInt(inp.dataset.idx);
         const field = inp.dataset.field;
         classes[idx][field] = inp.value;
-        // Update the stored data-orig so future edits track correctly
         inp.dataset.orig = inp.value;
         inp.classList.remove('time-changed');
     });
 
-    // Update originalData
     originalData.classes = classes;
-
-    // Re-run conversion client-side
     ramadanData = clientConvert(classes);
 
-    // Update UI
     renderRamadanTable();
     document.getElementById('statExact').textContent =
         ramadanData.conversion_stats?.exact_matches || 0;
 
     pendingChanges = 0;
-    document.getElementById('reconvertBar').style.display = 'none';
-    showAlert('success', 'Schedule re-converted with your corrected times!');
     updateConflicts();
     renderWarnings();
+    showUpdateToast();
+}
+
+function showUpdateToast() {
+    const toast = document.getElementById('updateToast');
+    toast.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
 function renderRamadanTable() {
@@ -1214,7 +1411,6 @@ function resetApp() {
     document.getElementById('heroInfo').classList.remove('hidden');
     fileInput.value = '';
     document.getElementById('timeWarningBanner').style.display = 'none';
-    document.getElementById('reconvertBar').style.display = 'none';
     hideAlerts();
 }
 
@@ -1306,6 +1502,30 @@ function showLoading(status, substatus, pct) {
     document.getElementById('loadingBarFill').style.width = pct + '%';
 }
 
+function showLoadingWithQuote(status, substatus, pct) {
+    showLoading(status, substatus, pct);
+    showNextQuote();
+}
+
+function showNextQuote() {
+    // Pick a random quote different from current
+    let idx;
+    do { idx = Math.floor(Math.random() * RAMADAN_QUOTES.length); } while (idx === currentQuoteIdx && RAMADAN_QUOTES.length > 1);
+    currentQuoteIdx = idx;
+    const q = RAMADAN_QUOTES[idx];
+    const quoteEl = document.getElementById('loadingQuote');
+    const sourceEl = document.getElementById('loadingSource');
+    if (quoteEl) {
+        quoteEl.style.opacity = '0';
+        setTimeout(() => {
+            quoteEl.textContent = '"' + q.text + '"';
+            sourceEl.textContent = '— ' + q.source;
+            quoteEl.style.opacity = '0.9';
+            sourceEl.style.opacity = '1';
+        }, 300);
+    }
+}
+
 function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     overlay.classList.remove('active');
@@ -1321,6 +1541,8 @@ function esc(str) {
 
 
 </script>
+
+<div class="update-toast" id="updateToast"><span class="check">&#10003;</span> Schedule updated</div>
 
 </body>
 </html>
