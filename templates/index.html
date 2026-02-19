@@ -527,17 +527,22 @@
             box-shadow: 0 0 0 1px var(--warning);
         }
         .warning-banner {
-            background: var(--badge-warning-bg);
-            border: 1px solid rgba(245,158,11,0.25);
+            background: rgba(239,68,68,0.12);
+            border: 2px solid rgba(239,68,68,0.5);
             border-radius: 10px;
             padding: 0.9rem 1.2rem;
             margin: 1rem 0;
-            color: var(--warning);
-            font-size: 0.82rem;
+            color: #ef4444;
+            font-size: 0.88rem;
             line-height: 1.6;
-            font-weight: 500;
+            font-weight: 600;
+            animation: pulse-warning 2s ease-in-out infinite;
         }
-        .warning-banner strong { color: #fcd34d; }
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+            50% { box-shadow: 0 0 12px 4px rgba(239,68,68,0.25); }
+        }
+        .warning-banner strong { color: #f87171; }
         .update-toast {
             position: fixed;
             bottom: 2rem;
